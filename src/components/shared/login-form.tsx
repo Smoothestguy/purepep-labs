@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 
@@ -24,6 +24,7 @@ const labelStyle: React.CSSProperties = {
 
 export function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isPending, startTransition] = useTransition();
@@ -45,7 +46,10 @@ export function LoginForm() {
         }
 
         toast.success("Signed in.");
-        router.push("/");
+        const raw = searchParams.get("redirect");
+        const redirectTo =
+          raw && raw.startsWith("/") && !raw.startsWith("//") ? raw : "/shop";
+        router.push(redirectTo);
         router.refresh();
       } catch (err) {
         const message =

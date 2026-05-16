@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 import { LoginForm } from "@/components/shared/login-form";
 
 export const metadata: Metadata = {
@@ -39,7 +40,9 @@ export default function LoginPage() {
       </p>
 
       <div style={{ marginTop: "clamp(1.5rem, 3vw, 2.5rem)" }}>
-        <LoginForm />
+        <Suspense fallback={null}>
+          <LoginForm />
+        </Suspense>
       </div>
 
       <div

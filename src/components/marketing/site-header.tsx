@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { CartTrigger } from "@/components/shop/cart-trigger";
-import { PurepepMark } from "./logo";
+import { AuthButton } from "@/components/shared/auth-button";
 
 const nav = [
   { href: "/shop", label: "Catalog" },
@@ -17,17 +18,16 @@ export function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-hairline bg-background/70 backdrop-blur-md">
-      <div className="mx-auto flex h-[clamp(3.5rem,5vw+2rem,4.5rem)] w-full max-w-[var(--content-max)] items-center justify-between gap-4 pad-x">
-        <Link href="/" className="group flex items-center gap-[clamp(0.5rem,1vw,0.75rem)]">
-          <PurepepMark className="size-[clamp(1.75rem,2.2vw,2.25rem)]" />
-          <span className="flex items-baseline gap-1.5 leading-none">
-            <span className="font-display text-[clamp(15px,1.3vw,18px)] tracking-tight text-foreground">
-              PurePep
-            </span>
-            <span className="font-mono text-[clamp(9px,0.8vw,10px)] tracking-[0.3em] text-muted-foreground">
-              LABS
-            </span>
-          </span>
+      <div className="mx-auto flex h-[clamp(5rem,7vw+2rem,7rem)] w-full max-w-[var(--content-max)] items-center justify-between gap-4 pad-x">
+        <Link href="/" className="group flex items-center" aria-label="PurePep Labs — home">
+          <Image
+            src="/images/PurePep_Label.png"
+            alt="PurePep Labs"
+            width={1320}
+            height={1348}
+            priority
+            className="h-[clamp(3.75rem,6vw,5.5rem)] w-auto"
+          />
         </Link>
 
         <nav className="hidden items-center gap-[clamp(1.25rem,2.4vw,2.5rem)] md:flex">
@@ -46,12 +46,7 @@ export function SiteHeader() {
         </nav>
 
         <div className="flex items-center gap-[clamp(0.5rem,1vw,0.75rem)]">
-          <Link
-            href="/login"
-            className="hidden whitespace-nowrap font-mono text-[11px] tracking-[0.22em] uppercase text-muted-foreground transition-colors hover:text-foreground xl:inline"
-          >
-            Researcher log-in
-          </Link>
+          <AuthButton />
           <CartTrigger />
           <Link
             href="/shop"
@@ -126,13 +121,10 @@ export function SiteHeader() {
                   View cart
                   <span aria-hidden>→</span>
                 </Link>
-                <Link
-                  href="/login"
-                  onClick={() => setMobileOpen(false)}
-                  className="inline-flex items-center justify-center gap-3 border border-hairline py-4 font-mono text-[11px] tracking-[0.3em] uppercase text-foreground transition-colors hover:border-foreground"
-                >
-                  Researcher log-in
-                </Link>
+                <AuthButton
+                  variant="mobile"
+                  onNavigate={() => setMobileOpen(false)}
+                />
                 <Link
                   href="/shop"
                   onClick={() => setMobileOpen(false)}

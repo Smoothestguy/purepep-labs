@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { NewsletterForm } from "./newsletter-form";
 
 type FooterLink = { href: string; label: string };
@@ -133,14 +134,14 @@ export function SiteFooter() {
           <div>For research use only · Not for human consumption</div>
         </div>
 
-        <div className="mt-6 overflow-hidden">
-          <div
-            aria-hidden
-            className="whitespace-nowrap font-display leading-[0.82] tracking-[-0.06em] text-gradient-brand"
-            style={{ fontSize: "clamp(3.5rem, 18vw, 22rem)" }}
-          >
-            PUREPEP<span className="italic font-light opacity-80">·</span>LABS
-          </div>
+        <div className="mt-6 flex justify-center">
+          <Image
+            src="/images/PurePep_Label.png"
+            alt="PurePep Labs"
+            width={1320}
+            height={1348}
+            className="h-auto w-[clamp(8rem,18vw,14rem)]"
+          />
         </div>
       </div>
     </footer>

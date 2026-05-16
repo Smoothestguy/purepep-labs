@@ -1,12 +1,18 @@
 import Link from "next/link";
 import type { Compound } from "@/lib/compounds";
-import { slugify } from "@/lib/compounds";
+import {
+  slugify,
+  compoundHasPhoto,
+  compoundPhotoSrc,
+} from "@/lib/compounds";
+import { CompoundLabel } from "./compound-label";
 
 type Props = {
   compound: Compound;
 };
 
 export function ProductCard({ compound: c }: Props) {
+  const hasPhoto = compoundHasPhoto(c);
   return (
     <Link
       href={`/product/${slugify(c.name)}`}
@@ -18,6 +24,40 @@ export function ProductCard({ compound: c }: Props) {
     >
       {/* Corner ticks — appear on hover */}
       <CardCornerTicks />
+
+      {/* Vial image — photoreal render or base + SVG label fallback */}
+      <div
+        className="relative -mx-[clamp(1.1rem,1.8vw,1.5rem)] -mt-[clamp(1.1rem,1.8vw,1.5rem)] aspect-square overflow-hidden border-b border-hairline bg-[oklch(0.05_0.005_250)]"
+      >
+        <img
+          src={compoundPhotoSrc(c)}
+          alt={`${c.name} vial`}
+          className="absolute inset-0 h-full w-full object-contain transition-transform duration-700 group-hover:scale-[1.03]"
+          loading="lazy"
+        />
+        {!hasPhoto && (
+          <div
+            className="absolute"
+            style={{
+              left: "36%",
+              right: "33%",
+              top: "47%",
+              height: "29%",
+            }}
+          >
+            <CompoundLabel compound={c} uid={`card-${c.accession}`} />
+          </div>
+        )}
+        {/* Soft bottom fade so the image meets the typographic block cleanly */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-1/4"
+          style={{
+            background:
+              "linear-gradient(to bottom, transparent, var(--background) 95%)",
+          }}
+        />
+      </div>
 
       {/* Header row — accession + family */}
       <div

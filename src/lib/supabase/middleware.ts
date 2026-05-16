@@ -50,7 +50,37 @@ export async function updateSession(request: NextRequest) {
   // Touching getUser() forces a session refresh if the access token is near
   // expiry, triggering `setAll` above and writing refreshed cookies onto
   // both the request and response.
-  await supabase.auth.getUser();
+  const { data: { user }, error } = await supabase.auth.getUser();
+  if (error) {
+    // Surfaces invalid env or unreachable Supabase in Vercel runtime logs
+    // without breaking the flow — getUser still returns user: null.
+    console.warn("[supabase] getUser error:", error.message);
+  }
+
+  // Gate inventory routes behind auth. Public surface: marketing home, auth
+  // pages, legal pages, and metadata/SEO routes.
+  const { pathname } = request.nextUrl;
+  const isPublicPath =
+    pathname === "/" ||
+    pathname.startsWith("/login") ||
+    pathname.startsWith("/register") ||
+    pathname.startsWith("/auth") ||
+    pathname.startsWith("/api/auth") ||
+    pathname === "/research-use" ||
+    pathname === "/terms" ||
+    pathname === "/privacy" ||
+    pathname === "/export-compliance" ||
+    pathname === "/sitemap.xml" ||
+    pathname === "/robots.txt" ||
+    pathname === "/opengraph-image" ||
+    pathname === "/icon";
+
+  if (!user && !isPublicPath) {
+    const loginUrl = request.nextUrl.clone();
+    loginUrl.pathname = "/login";
+    loginUrl.searchParams.set("redirect", pathname);
+    return NextResponse.redirect(loginUrl);
+  }
 
   return response;
 }

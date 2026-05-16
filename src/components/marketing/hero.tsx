@@ -1,90 +1,151 @@
 import Link from "next/link";
+import { HeroVideo } from "./hero-video";
 
 export function Hero() {
   return (
-    <section className="relative overflow-hidden border-b border-hairline">
-      {/* Faint technical grid */}
+    <section className="relative isolate overflow-hidden bg-background text-foreground">
+      {/* Cinematic video with scroll parallax */}
+      <HeroVideo />
+
+      {/* Soft left scrim — only where the editorial copy lives. Doesn't touch the vial. */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-[0.08]"
-        style={{
-          backgroundImage:
-            "linear-gradient(to right, rgb(255 255 255 / 0.5) 1px, transparent 1px), linear-gradient(to bottom, rgb(255 255 255 / 0.5) 1px, transparent 1px)",
-          backgroundSize: "80px 80px",
-          maskImage:
-            "radial-gradient(ellipse at 30% 40%, black 30%, transparent 75%)",
-        }}
-      />
-      {/* Soft brand glow */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -top-40 right-[-10%] size-[min(680px,80vw)] rounded-full opacity-[0.22] blur-3xl"
+        className="pointer-events-none absolute inset-0"
         style={{
           background:
-            "radial-gradient(closest-side, var(--brand) 0%, transparent 70%)",
+            "linear-gradient(100deg, var(--background) 0%, oklch(from var(--background) l c h / 0.6) 25%, oklch(from var(--background) l c h / 0.25) 45%, transparent 60%)",
         }}
       />
 
+      {/* Frame ticks at the section corners — film-grade chrome */}
+      <FrameTicks />
+
+      {/* HUD strip — REC top-left, spec top-right (desktop only) */}
       <div
-        className="relative mx-auto grid w-full max-w-[var(--content-max)] grid-cols-1 pad-x xl:grid-cols-12 items-start"
+        className="absolute z-10 hidden items-center font-mono uppercase lg:flex"
         style={{
-          paddingTop: "clamp(3rem, 6vw + 1rem, 8rem)",
-          paddingBottom: "clamp(4rem, 7vw + 1rem, 9rem)",
-          gap: "clamp(2.5rem, 4vw, 3.5rem)",
+          top: "clamp(1rem, 2vw, 1.75rem)",
+          left: "clamp(1.25rem, 3.5vw, 5rem)",
+          fontSize: "clamp(9px, 0.25vw + 8px, 10.5px)",
+          letterSpacing: "0.28em",
+          gap: "0.6rem",
         }}
       >
-        {/* LEFT — editorial copy */}
-        <div className="relative z-10 flex flex-col xl:col-span-8 2xl:col-span-7">
-          {/* Section code */}
+        <span className="size-1.5 animate-blink bg-heat" />
+        <span style={{ color: "oklch(0.97 0.005 220)" }}>REC</span>
+        <span className="opacity-50">·</span>
+        <span className="opacity-70">00:00:08</span>
+      </div>
+      <div
+        className="absolute z-10 hidden text-right font-mono uppercase lg:block"
+        style={{
+          top: "clamp(1rem, 2vw, 1.75rem)",
+          right: "clamp(1.25rem, 3.5vw, 5rem)",
+          fontSize: "clamp(9px, 0.25vw + 8px, 10.5px)",
+          letterSpacing: "0.28em",
+        }}
+      >
+        <div style={{ color: "oklch(0.97 0.005 220)" }}>Spec. PP-001</div>
+        <div className="opacity-60">Lot A-4418</div>
+      </div>
+
+      {/* Main content — copy stays in the left two-thirds, never crosses the vial */}
+      <div
+        className="relative z-10 mx-auto flex w-full max-w-[var(--content-max)] flex-col justify-center pad-x lg:min-h-[min(78vh,820px)]"
+        style={{
+          paddingTop: "clamp(2rem, 4vw + 1rem, 5rem)",
+          paddingBottom: "clamp(2rem, 4vw + 1rem, 4rem)",
+        }}
+      >
+        <div className="relative flex w-full flex-col lg:max-w-[min(64%,57.5rem)]">
           <div className="section-eyebrow">
-            <span className="whitespace-nowrap text-brand">§ 01</span>
             <span
-              className="h-px shrink-0 bg-hairline"
-              style={{ width: "clamp(1.5rem, 3vw, 2.75rem)" }}
+              className="whitespace-nowrap"
+              style={{ color: "oklch(0.82 0.15 210)" }}
+            >
+              § 01
+            </span>
+            <span
+              className="h-px shrink-0"
+              style={{
+                width: "clamp(1.5rem, 3vw, 2.75rem)",
+                background: "oklch(1 0 0 / 0.18)",
+              }}
             />
-            <span className="whitespace-nowrap">
+            <span
+              className="whitespace-nowrap"
+              style={{ color: "oklch(0.7 0.01 230)" }}
+            >
               Index Vol. XII · Spring ’26
             </span>
           </div>
 
-          {/* Headline */}
           <h1
-            className="display-hero text-foreground"
-            style={{ marginTop: "clamp(1.75rem, 3vw, 3rem)" }}
+            className="display-hero"
+            style={{
+              marginTop: "clamp(1rem, 2vw, 2rem)",
+              color: "oklch(0.98 0.005 220)",
+              textShadow: "0 2px 24px oklch(0 0 0 / 0.55)",
+              fontSize: "clamp(2.25rem, 6vw, 6.75rem)",
+              lineHeight: 0.92,
+            }}
           >
-            <span className="block italic font-light">Research-grade</span>
-            <span className="block">peptides,</span>
-            <span className="block text-muted-foreground">documented to</span>
-            <span className="block">
-              the <span className="italic text-gradient-brand">milligram.</span>
+            <span className="block italic font-light animate-rise">
+              Research-grade
+            </span>
+            <span
+              className="block animate-rise"
+              style={{ animationDelay: "120ms" }}
+            >
+              peptides,
+            </span>
+            <span
+              className="block animate-rise"
+              style={{ animationDelay: "240ms", color: "oklch(0.7 0.01 230)" }}
+            >
+              documented to
+            </span>
+            <span
+              className="block animate-rise"
+              style={{ animationDelay: "360ms" }}
+            >
+              the{" "}
+              <span className="italic text-gradient-brand">milligram.</span>
             </span>
           </h1>
 
-          {/* Lede */}
           <p
-            className="max-w-xl body-lede"
-            style={{ marginTop: "clamp(1.75rem, 3vw, 2.5rem)" }}
+            className="body-lede animate-rise"
+            style={{
+              marginTop: "clamp(1.5rem, 2.5vw, 2.25rem)",
+              maxWidth: "36rem",
+              color: "oklch(0.78 0.01 230)",
+              animationDelay: "520ms",
+            }}
           >
             Every vial is HPLC-verified, lot-traceable, and shipped with a
             third-party Certificate of Analysis. No proprietary blends. No
             mystery excipients. Just the compound, documented.
           </p>
 
-          {/* CTAs */}
           <div
-            className="flex flex-wrap items-center"
+            className="flex flex-wrap items-center animate-rise"
             style={{
-              marginTop: "clamp(1.75rem, 3vw, 2.5rem)",
+              marginTop: "clamp(1.5rem, 2.5vw, 2.25rem)",
               gap: "clamp(0.65rem, 1.2vw, 1rem)",
+              animationDelay: "640ms",
             }}
           >
             <Link
               href="#catalog"
-              className="group inline-flex items-center gap-3 whitespace-nowrap bg-brand font-mono tracking-[0.3em] uppercase text-brand-foreground transition-all hover:shadow-[0_0_0_4px_oklch(0.82_0.15_210_/_0.18)]"
+              className="group inline-flex items-center gap-3 whitespace-nowrap font-mono uppercase transition-all hover:shadow-[0_0_0_4px_oklch(0.82_0.15_210_/_0.22)]"
               style={{
+                background: "oklch(0.82 0.15 210)",
+                color: "oklch(0.14 0.01 250)",
                 paddingInline: "clamp(1.1rem, 1.8vw, 1.6rem)",
                 paddingBlock: "clamp(0.75rem, 1vw, 1rem)",
                 fontSize: "clamp(10px, 0.3vw + 9px, 11px)",
+                letterSpacing: "0.3em",
               }}
             >
               Enter catalog
@@ -94,153 +155,45 @@ export function Hero() {
             </Link>
             <Link
               href="#coa"
-              className="group inline-flex items-center gap-3 whitespace-nowrap border border-hairline font-mono tracking-[0.3em] uppercase text-foreground transition-colors hover:border-foreground"
+              className="group inline-flex items-center gap-3 whitespace-nowrap font-mono uppercase transition-colors hover:border-white"
               style={{
+                border: "1px solid oklch(1 0 0 / 0.22)",
+                color: "oklch(0.97 0.005 220)",
                 paddingInline: "clamp(1.1rem, 1.8vw, 1.6rem)",
                 paddingBlock: "clamp(0.75rem, 1vw, 1rem)",
                 fontSize: "clamp(10px, 0.3vw + 9px, 11px)",
+                letterSpacing: "0.3em",
               }}
             >
-              <span className="size-1.5 rounded-full bg-brand" />
+              <span
+                className="size-1.5 rounded-full"
+                style={{ background: "oklch(0.82 0.15 210)" }}
+              />
               View documentation
             </Link>
           </div>
 
-          {/* Technical data row */}
-          <dl
-            className="grid grid-cols-3 border-t border-hairline"
-            style={{
-              marginTop: "clamp(2.5rem, 4.5vw, 4.5rem)",
-              paddingTop: "clamp(1.25rem, 2vw, 1.75rem)",
-              columnGap: "clamp(1rem, 2vw, 2rem)",
-            }}
-          >
-            {[
-              { k: "One compound", v: "Per vial", sub: "Never a blend" },
-              { k: "A CoA", v: "With every lot", sub: "Third-party signed" },
-              { k: "Two labs", v: "Cross-assayed", sub: "Independently" },
-            ].map((s) => (
-              <div key={s.k}>
-                <dt className="font-mono tracking-[0.25em] uppercase text-muted-foreground" style={{ fontSize: "clamp(9.5px, 0.25vw + 8.5px, 10.5px)" }}>
-                  {s.k}
-                </dt>
-                <dd
-                  className="font-display leading-none tracking-tight text-foreground"
-                  style={{
-                    marginTop: "clamp(0.4rem, 0.6vw, 0.6rem)",
-                    fontSize: "clamp(1.75rem, 2.8vw, 2.75rem)",
-                  }}
-                >
-                  {s.v}
-                </dd>
-                <dd
-                  className="font-mono tracking-[0.2em] uppercase text-muted-foreground"
-                  style={{
-                    marginTop: "clamp(0.2rem, 0.3vw, 0.35rem)",
-                    fontSize: "clamp(9.5px, 0.25vw + 8.5px, 10.5px)",
-                  }}
-                >
-                  {s.sub}
-                </dd>
-              </div>
-            ))}
-          </dl>
-        </div>
-
-        {/* RIGHT — vial cinema */}
-        <div className="relative xl:col-span-4 2xl:col-span-5">
-          <div className="relative aspect-[4/5] w-full overflow-hidden border border-hairline bg-surface">
-            <CornerTicks />
-
-            <video
-              className="absolute inset-0 h-full w-full object-cover"
-              autoPlay
-              muted
-              loop
-              playsInline
-              poster="/videos/purepep-vial-poster.jpg"
-              style={{ filter: "contrast(1.08) saturate(1.05)" }}
-            >
-              <source src="/videos/purepep-vial.mp4" type="video/mp4" />
-            </video>
-
-            {/* Vignette — hides the vial render's transparency checkerboard */}
-            <div
-              aria-hidden
-              className="absolute inset-0"
-              style={{
-                background:
-                  "radial-gradient(ellipse 55% 70% at 50% 50%, transparent 0%, oklch(0.17 0.02 250 / 0.45) 55%, oklch(0.13 0.01 250 / 0.95) 100%)",
-              }}
-            />
-            <div
-              aria-hidden
-              className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-background via-background/60 to-transparent"
-            />
-
-            <div
-              className="absolute left-[clamp(0.5rem,1vw,1rem)] top-[clamp(0.5rem,1vw,1rem)] font-mono tracking-[0.22em] uppercase text-foreground"
-              style={{ fontSize: "clamp(9px, 0.25vw + 8px, 10.5px)" }}
-            >
-              <div className="flex items-center gap-2">
-                <span className="size-1.5 animate-blink bg-heat" />
-                REC · 00:00:08
-              </div>
-            </div>
-            <div
-              className="absolute right-[clamp(0.5rem,1vw,1rem)] top-[clamp(0.5rem,1vw,1rem)] text-right font-mono tracking-[0.22em] uppercase text-foreground"
-              style={{ fontSize: "clamp(9px, 0.25vw + 8px, 10.5px)" }}
-            >
-              <div>Spec. PP-001</div>
-              <div className="text-muted-foreground">Lot A-4418</div>
-            </div>
-
-            <div
-              className="absolute bottom-[clamp(0.5rem,1vw,1rem)] left-[clamp(0.5rem,1vw,1rem)] right-[clamp(0.5rem,1vw,1rem)] flex items-end justify-between gap-3 font-mono tracking-[0.22em] uppercase text-foreground"
-              style={{ fontSize: "clamp(9px, 0.25vw + 8px, 10.5px)" }}
-            >
-              <div>
-                <div className="text-muted-foreground">Subject</div>
-                <div className="mt-1 text-foreground">
-                  BPC-157 · 5 mg · lyophilised
-                </div>
-              </div>
-              <div className="text-right">
-                <div className="text-muted-foreground">MW</div>
-                <div className="mt-1 text-brand">1419.53 g/mol</div>
-              </div>
-            </div>
-          </div>
-
-          <p
-            className="font-mono tracking-[0.22em] uppercase text-muted-foreground"
-            style={{
-              marginTop: "clamp(0.65rem, 1vw, 1rem)",
-              fontSize: "clamp(9px, 0.25vw + 8px, 10.5px)",
-            }}
-          >
-            Fig. 01 — Amber borosilicate vial, argon-flushed, 5 mg fill.
-          </p>
         </div>
       </div>
     </section>
   );
 }
 
-function CornerTicks() {
-  const corners = [
-    "top-2 left-2 border-t border-l",
-    "top-2 right-2 border-t border-r",
-    "bottom-2 left-2 border-b border-l",
-    "bottom-2 right-2 border-b border-r",
+function FrameTicks() {
+  const corners: Array<{ pos: string; bx: string; by: string }> = [
+    { pos: "top-3 left-3", bx: "border-l", by: "border-t" },
+    { pos: "top-3 right-3", bx: "border-r", by: "border-t" },
+    { pos: "bottom-3 left-3", bx: "border-l", by: "border-b" },
+    { pos: "bottom-3 right-3", bx: "border-r", by: "border-b" },
   ];
   return (
     <>
       {corners.map((c) => (
         <div
-          key={c}
+          key={c.pos}
           aria-hidden
-          className={`pointer-events-none absolute size-[clamp(1rem,1.6vw,1.5rem)] border-foreground/40 ${c}`}
+          className={`pointer-events-none absolute z-10 size-5 ${c.pos} ${c.bx} ${c.by}`}
+          style={{ borderColor: "oklch(1 0 0 / 0.32)" }}
         />
       ))}
     </>
