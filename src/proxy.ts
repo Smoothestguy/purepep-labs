@@ -12,8 +12,8 @@ export const config = {
      * - _next/static (build assets)
      * - _next/image (image optimizer)
      * - api routes (handle their own auth)
-     * - favicon and common static files (ico, png, svg, jpg, jpeg, gif, webp)
+     * - favicon and common static files (images, videos, fonts, models)
      */
-    "/((?!_next/static|_next/image|api|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
+    "/((?!_next/static|_next/image|api|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|avif|ico|mp4|webm|mov|m4v|ogg|glb|gltf|woff|woff2|ttf|otf)$).*)",
   ],
 };

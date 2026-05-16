@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { PurepepMark } from "@/components/marketing/logo";
+import Image from "next/image";
 
 /**
  * Minimal auth shell — a stripped header with only the logo mark and a
@@ -17,12 +17,17 @@ export default function AuthLayout({
         <div className="mx-auto flex w-full max-w-[var(--content-max)] items-center justify-between pad-x py-5">
           <Link
             href="/"
-            className="flex items-center gap-3 transition-opacity hover:opacity-80"
+            className="group flex items-center transition-opacity hover:opacity-80"
+            aria-label="PurePep Labs — home"
           >
-            <PurepepMark className="h-8 w-8" />
-            <span className="font-display text-base tracking-[-0.01em]">
-              PurePep Labs
-            </span>
+            <Image
+              src="/images/PurePep_Label.png"
+              alt="PurePep Labs"
+              width={1320}
+              height={1348}
+              priority
+              className="h-[clamp(3rem,5vw,4.5rem)] w-auto"
+            />
           </Link>
           <Link
             href="/"
