@@ -55,17 +55,17 @@ export default async function PasswordPage({
         }}
       />
 
-      {/* Hairline frame */}
+      {/* Hairline frame — hidden on small screens to avoid double-frame feel */}
       <div
         aria-hidden
-        className="pointer-events-none absolute"
+        className="pointer-events-none absolute hidden sm:block"
         style={{
           inset: "1.5rem",
           border: "1px solid oklch(1 0 0 / 0.08)",
         }}
       />
 
-      <div className="relative z-10 flex w-full max-w-[30rem] flex-col items-center pad-x py-12 text-center">
+      <div className="relative z-10 flex w-full max-w-[30rem] flex-col items-center px-5 py-10 text-center sm:px-6 sm:py-12">
         {/* PurePep label mark */}
         <Image
           src="/images/PurePep_Label.png"
@@ -73,7 +73,7 @@ export default async function PasswordPage({
           width={1320}
           height={1348}
           priority
-          className="h-32 w-auto"
+          className="h-24 w-auto sm:h-32"
         />
 
         {/* Eyebrow */}
@@ -130,7 +130,7 @@ export default async function PasswordPage({
           >
             Notify me at launch
           </label>
-          <div className="flex w-full gap-2">
+          <div className="flex w-full flex-col gap-2 sm:flex-row">
             <input
               id="waitlist-email"
               name="email"
@@ -142,21 +142,18 @@ export default async function PasswordPage({
               aria-describedby={
                 waitlistState ? "waitlist-status" : undefined
               }
-              className="w-full bg-transparent px-4 py-3 font-mono text-foreground outline-none transition-colors focus:border-brand"
+              className="min-w-0 w-full bg-transparent px-4 py-3 font-mono text-foreground outline-none transition-colors focus:border-brand"
               style={{
                 border: "1px solid oklch(1 0 0 / 0.18)",
-                fontSize: "14px",
+                fontSize: "16px",
               }}
             />
             <button
               type="submit"
-              className="group inline-flex items-center justify-center gap-2 whitespace-nowrap font-mono uppercase transition-all hover:shadow-[0_0_0_4px_oklch(0.82_0.15_210_/_0.22)]"
+              className="group inline-flex w-full items-center justify-center gap-2 whitespace-nowrap px-4 py-3 font-mono text-[11px] uppercase tracking-[0.2em] transition-all hover:shadow-[0_0_0_4px_oklch(0.82_0.15_210_/_0.22)] sm:w-auto sm:px-5 sm:tracking-[0.3em]"
               style={{
                 background: "oklch(0.82 0.15 210)",
                 color: "oklch(0.14 0.01 250)",
-                padding: "0.85rem 1.25rem",
-                fontSize: "11px",
-                letterSpacing: "0.3em",
               }}
             >
               Notify me
@@ -251,11 +248,11 @@ export default async function PasswordPage({
               required
               aria-invalid={showStaffError || undefined}
               aria-describedby={showStaffError ? "site-password-error" : undefined}
-              className="w-full bg-transparent px-4 py-3 font-mono text-foreground outline-none transition-colors focus:border-brand"
+              className="min-w-0 w-full bg-transparent px-4 py-3 font-mono text-foreground outline-none transition-colors focus:border-brand"
               style={{
                 border: "1px solid oklch(1 0 0 / 0.18)",
                 letterSpacing: "0.1em",
-                fontSize: "14px",
+                fontSize: "16px",
               }}
             />
             {showStaffError ? (
@@ -272,13 +269,10 @@ export default async function PasswordPage({
             ) : null}
             <button
               type="submit"
-              className="group inline-flex items-center justify-center gap-2 whitespace-nowrap font-mono uppercase transition-colors"
+              className="group inline-flex w-full items-center justify-center gap-2 whitespace-nowrap px-4 py-3 font-mono text-[10px] uppercase tracking-[0.2em] transition-colors sm:w-auto sm:self-start sm:px-5 sm:tracking-[0.3em]"
               style={{
                 border: "1px solid oklch(1 0 0 / 0.22)",
                 color: "oklch(0.97 0.005 220)",
-                padding: "0.7rem 1.25rem",
-                fontSize: "10px",
-                letterSpacing: "0.3em",
               }}
             >
               Unlock site
