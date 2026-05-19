@@ -11,17 +11,17 @@ const Scene = dynamic(
 );
 
 const BG_BY_CATEGORY: Record<Compound["category"], string> = {
-  regenerative: "#2a0f04",
+  structural: "#2a0f04",
   metabolic: "#04201d",
   nootropic: "#180c2e",
-  longevity: "#041d2c",
+  senescence: "#041d2c",
 };
 
 const CATEGORY_LABEL: Record<Compound["category"], string> = {
-  regenerative: "Regenerative",
+  structural: "Structural",
   metabolic: "Metabolic",
   nootropic: "Nootropic",
-  longevity: "Longevity",
+  senescence: "Senescence",
 };
 
 export function CinematicHero() {

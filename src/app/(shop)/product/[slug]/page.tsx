@@ -49,10 +49,10 @@ export async function generateMetadata({
  */
 function monographParagraphs(c: Compound): string[] {
   const families: Record<Compound["category"], string[]> = {
-    regenerative: [
+    structural: [
       `${c.blurb} Isolated for its structural simplicity and synthetic accessibility, ${c.name} is produced as a lyophilised solid and sealed under inert atmosphere.`,
       `Every batch moves through the full Six-Step protocol — solid-phase Fmoc synthesis, TFA cleavage, reverse-phase HPLC purification, and ESI-TOF mass-spec confirmation. The lot shipped carries ≥ ${c.purity}% HPLC-MS purity with residual solvent and endotoxin assays signed by an independent laboratory.`,
-      `Store the unreconstituted vial at −20 °C. After reconstitution into bacteriostatic water, keep refrigerated and use within four weeks. Do not refreeze.`,
+      `Lyophilised vials are stable at −20 °C in their sealed amber container. In bacteriostatic water, HPLC-verified purity holds for approximately four weeks under refrigeration; single-thaw only.`,
     ],
     metabolic: [
       `${c.blurb} ${c.name} belongs to the ${c.family.toLowerCase()} class and is prepared at a ${c.dose} fill per vial for laboratory titration work.`,
@@ -62,12 +62,12 @@ function monographParagraphs(c: Compound): string[] {
     nootropic: [
       `${c.blurb} ${c.name} is a short ${c.family.toLowerCase()} presented as a freeze-dried solid with amber-glass packaging and argon-flushed headspace.`,
       `Synthesis uses Fmoc solid-phase chemistry with HBTU activation; crude peptide is precipitated in cold ether and polished by reverse-phase HPLC until purity floors at ${c.purity}%. Every lot leaves the bench with ESI-TOF, LAL endotoxin, and residual-solvent data attached.`,
-      `Store frozen at −20 °C. Reconstituted solutions are stable refrigerated for up to two weeks; thaw once and avoid repeated freeze-thaw cycles.`,
+      `Lyophilised material is stable frozen at −20 °C. In aqueous solution, HPLC purity holds refrigerated for roughly two weeks; single-thaw only, no repeated freeze-thaw cycles.`,
     ],
-    longevity: [
+    senescence: [
       `${c.blurb} ${c.name} is supplied as a lyophilised solid at a ${c.dose} fill, sealed in amber borosilicate with an argon headspace.`,
       `Our Six-Step protocol applies identically to tripeptides and tetrapeptides: SPPS synthesis, HPLC purification to ≥ ${c.purity}%, and ESI-TOF mass confirmation. Copper complexes additionally pass a UV-vis coordination check. Every lot ships with a CoA signed by a third-party analytical lab.`,
-      `Keep at −20 °C until reconstitution. Short peptides are robust once dry, but once in solution, refrigerate and use within four weeks.`,
+      `Sealed vials hold indefinitely at −20 °C. Short peptides are robust as dry solids; in aqueous solution, HPLC purity remains within spec for approximately four weeks under refrigeration.`,
     ],
   };
   return families[c.category];

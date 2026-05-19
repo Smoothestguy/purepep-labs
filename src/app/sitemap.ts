@@ -15,10 +15,10 @@ const PRODUCT_SLUGS = [
 ] as const;
 
 const CATEGORIES = [
-  "regenerative",
+  "structural",
   "metabolic",
   "nootropic",
-  "longevity",
+  "senescence",
 ] as const;
 
 export default function sitemap(): MetadataRoute.Sitemap {

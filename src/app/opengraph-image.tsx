@@ -1,3 +1,5 @@
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 import { ImageResponse } from "next/og";
 
 // File-convention config
@@ -16,7 +18,14 @@ const BRAND = "#4dd2e8"; // --brand cyan
 const BRAND_DEEP = "#4763d9"; // --brand-deep royal
 const HAIRLINE = "rgba(255,255,255,0.12)";
 
-export default function OpengraphImage() {
+async function loadLogo(): Promise<string> {
+  const path = join(process.cwd(), "public", "images", "PurePep_Label.png");
+  const buf = await readFile(path);
+  return `data:image/png;base64,${buf.toString("base64")}`;
+}
+
+export default async function OpengraphImage() {
+  const logoSrc = await loadLogo();
   return new ImageResponse(
     (
       <div
@@ -72,12 +81,12 @@ export default function OpengraphImage() {
           }}
         />
 
-        {/* Top row — brand dot + eyebrow */}
+        {/* Top row — PurePep label mark + eyebrow */}
         <div
           style={{
             display: "flex",
             alignItems: "center",
-            gap: 16,
+            gap: 24,
             color: MUTED,
             fontFamily:
               "ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace",
@@ -87,14 +96,13 @@ export default function OpengraphImage() {
             zIndex: 1,
           }}
         >
-          <div
-            style={{
-              width: 10,
-              height: 10,
-              borderRadius: 9999,
-              background: BRAND,
-              display: "flex",
-            }}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={logoSrc}
+            alt="PurePep Labs"
+            width={120}
+            height={123}
+            style={{ display: "flex" }}
           />
           <div style={{ display: "flex" }}>§ 01 · Index Vol. XII</div>
         </div>

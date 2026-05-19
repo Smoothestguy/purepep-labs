@@ -52,14 +52,15 @@ export function HeroVideo() {
       className="
         pointer-events-none relative z-0 w-full
         aspect-[16/10] lg:aspect-auto
-        lg:absolute lg:inset-0
+        lg:absolute lg:inset-y-0 lg:right-0 lg:left-auto
+        lg:w-full lg:max-w-[1700px]
         lg:flex lg:items-start lg:justify-center
       "
       style={{ y, scale, opacity, willChange: "transform" }}
     >
       <video
         ref={videoRef}
-        className="h-full w-full object-cover object-center"
+        className="h-full w-full object-cover object-[70%_center] lg:object-[60%_center]"
         autoPlay
         muted
         loop
@@ -69,9 +70,9 @@ export function HeroVideo() {
         controls={false}
         style={{
           WebkitMaskImage:
-            "linear-gradient(to right, transparent 0%, black 14%, black 94%, transparent 100%), linear-gradient(to bottom, transparent 0%, black 14%, black 80%, transparent 100%)",
+            "linear-gradient(to right, transparent 0%, black 14%, black 99%, transparent 100%), linear-gradient(to bottom, transparent 0%, black 10%, black 94%, transparent 100%)",
           maskImage:
-            "linear-gradient(to right, transparent 0%, black 14%, black 94%, transparent 100%), linear-gradient(to bottom, transparent 0%, black 14%, black 80%, transparent 100%)",
+            "linear-gradient(to right, transparent 0%, black 14%, black 99%, transparent 100%), linear-gradient(to bottom, transparent 0%, black 10%, black 94%, transparent 100%)",
           WebkitMaskComposite: "source-in",
           maskComposite: "intersect",
         }}

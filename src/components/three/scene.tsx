@@ -8,10 +8,10 @@ import { Vial } from "./vial";
 import type { Compound } from "@/lib/compounds";
 
 const ACCENT: Record<Compound["category"], string> = {
-  regenerative: "#FF8C42",
+  structural: "#FF8C42",
   metabolic: "#22D3EE",
   nootropic: "#C084FC",
-  longevity: "#38BDF8",
+  senescence: "#38BDF8",
 };
 
 interface SceneProps {

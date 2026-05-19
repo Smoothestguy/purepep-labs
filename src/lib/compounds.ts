@@ -14,7 +14,7 @@ export type Compound = {
   dose: string;
   price: number;
   inStock: number;
-  category: "regenerative" | "metabolic" | "nootropic" | "longevity";
+  category: "structural" | "metabolic" | "nootropic" | "senescence";
   family: string;
   blurb: string;
   lot: string;
@@ -34,7 +34,7 @@ export const compounds: Compound[] = [
     dose: "5 mg",
     price: 68,
     inStock: 214,
-    category: "regenerative",
+    category: "structural",
     family: "Pentadecapeptide",
     blurb:
       "Gastric pentadecapeptide. Synthesised and freeze-dried under inert argon.",
@@ -52,7 +52,7 @@ export const compounds: Compound[] = [
     dose: "5 mg",
     price: 74,
     inStock: 138,
-    category: "regenerative",
+    category: "structural",
     family: "Thymosin fragment",
     blurb:
       "Actin-sequestering peptide fragment. Lyophilised, sealed at 18 °C.",
@@ -70,7 +70,7 @@ export const compounds: Compound[] = [
     dose: "50 mg",
     price: 52,
     inStock: 402,
-    category: "longevity",
+    category: "senescence",
     family: "Copper tripeptide",
     blurb: "Endogenous tripeptide–copper complex. Royal blue lyophilisate.",
     lot: "B-1904",
@@ -89,7 +89,7 @@ export const compounds: Compound[] = [
     inStock: 96,
     category: "nootropic",
     family: "ACTH analogue",
-    blurb: "Synthetic analogue of ACTH(4-10). BDNF upregulation studied.",
+    blurb: "Synthetic analogue of ACTH(4-10). Sequence conserved from the endogenous ACTH fragment.",
     lot: "C-0312",
     coaDate: "2026-03-22",
     accent: { from: "oklch(0.55 0.22 305)", to: "oklch(0.72 0.2 340)" },
@@ -138,7 +138,7 @@ export const compounds: Compound[] = [
     dose: "10 mg",
     price: 58,
     inStock: 188,
-    category: "longevity",
+    category: "senescence",
     family: "Tetrapeptide",
     blurb: "Telomerase-associated tetrapeptide. Isolated from bovine pineal.",
     lot: "B-1911",
@@ -166,10 +166,10 @@ export const compounds: Compound[] = [
 ];
 
 export const categories = [
-  { key: "regenerative", label: "Regenerative" },
+  { key: "structural", label: "Structural" },
   { key: "metabolic", label: "Metabolic" },
   { key: "nootropic", label: "Nootropic" },
-  { key: "longevity", label: "Longevity" },
+  { key: "senescence", label: "Senescence" },
 ] as const;
 
 export function slugify(name: string): string {

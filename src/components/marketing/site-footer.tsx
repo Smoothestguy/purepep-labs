@@ -8,10 +8,10 @@ const columns: { title: string; links: FooterLink[] }[] = [
   {
     title: "Catalog",
     links: [
-      { href: "/shop?category=regenerative", label: "Regenerative" },
+      { href: "/shop?category=structural", label: "Structural" },
       { href: "/shop?category=metabolic", label: "Metabolic" },
       { href: "/shop?category=nootropic", label: "Nootropic" },
-      { href: "/shop?category=longevity", label: "Longevity" },
+      { href: "/shop?category=senescence", label: "Senescence" },
       { href: "/shop", label: "All compounds" },
     ],
   },
