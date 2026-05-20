@@ -3,6 +3,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { sendWaitlistConfirmation } from "@/lib/email";
 import {
   UNLOCK_COOKIE,
   UNLOCK_MAX_AGE_SECONDS,
@@ -66,6 +67,7 @@ export async function joinWaitlist(formData: FormData) {
     );
   }
 
+  let alreadySubscribed = false;
   try {
     const supabase = await createClient();
     const { error } = await supabase
@@ -74,11 +76,15 @@ export async function joinWaitlist(formData: FormData) {
 
     // 23505 = unique_violation — treat repeat signups as success so we don't
     // leak that the email is already in the list.
-    if (error && error.code !== "23505") {
-      console.warn("[waitlist] insert error:", error.message);
-      redirect(
-        `/password?waitlist=error&next=${encodeURIComponent(safeNext(next))}`,
-      );
+    if (error) {
+      if (error.code === "23505") {
+        alreadySubscribed = true;
+      } else {
+        console.warn("[waitlist] insert error:", error.message);
+        redirect(
+          `/password?waitlist=error&next=${encodeURIComponent(safeNext(next))}`,
+        );
+      }
     }
   } catch (err) {
     // Supabase not configured locally — still treat as success in dev so the
@@ -89,6 +95,14 @@ export async function joinWaitlist(formData: FormData) {
         `/password?waitlist=error&next=${encodeURIComponent(safeNext(next))}`,
       );
     }
+  }
+
+  // Fire-and-forget the confirmation email on first signup. We don't re-send
+  // on duplicate inserts so repeat submissions don't spam the user. Errors
+  // are swallowed inside sendWaitlistConfirmation — confirmation is a nice
+  // to have, not a blocker for the signup.
+  if (!alreadySubscribed) {
+    await sendWaitlistConfirmation(email);
   }
 
   redirect(
