@@ -8,6 +8,26 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: path.resolve(__dirname),
   },
+
+  // Email-friendly headers for images. Gmail's image proxy (and Apple Mail's
+  // remote-image fetcher) prefer long cache + permissive CORS. Vercel's
+  // default for /public is `max-age=0, must-revalidate` which several email
+  // proxies treat as "don't cache, maybe don't display."
+  async headers() {
+    return [
+      {
+        source: "/images/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+          { key: "Access-Control-Allow-Origin", value: "*" },
+          { key: "Cross-Origin-Resource-Policy", value: "cross-origin" },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;

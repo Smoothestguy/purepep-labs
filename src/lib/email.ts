@@ -14,10 +14,12 @@ function client(): Resend | null {
 
 const FROM = process.env.EMAIL_FROM ?? "PurePep Labs <support@purepep-labs.com>";
 
-// Brand mark is rendered with CSS-only typography (serif wordmark + mono
-// tagline) instead of a remote image — email clients vary wildly in how
-// (and whether) they load external images, and we kept losing the logo.
-// Typography always renders.
+// Logo hosted at /images/PurePep_Label_email.png with email-friendly cache
+// headers configured in next.config.ts. Vercel's default `must-revalidate`
+// header confuses some mail proxies; we override it for /images/* to use
+// immutable long-cache headers that Gmail / Apple Mail handle reliably.
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://thepurepep.com";
+const LOGO_URL = `${SITE_URL}/images/PurePep_Label_email.png`;
 
 export async function sendWaitlistConfirmation(to: string): Promise<void> {
   const resend = client();
@@ -60,17 +62,16 @@ function waitlistConfirmationHtml(): string {
         <td align="center" style="padding:40px 16px;">
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;background:#0a0d12;">
 
-            <!-- Brand mark (CSS-only — no remote image needed) -->
+            <!-- Brand logo -->
             <tr>
               <td align="center" style="padding:0 0 32px 0;">
-                <div style="text-align:center;">
-                  <div style="font-family:Georgia,'Times New Roman',serif;font-size:28px;line-height:1;color:#f4f6f9;font-weight:600;letter-spacing:0.04em;">
-                    PUREPEP <span style="color:#4dd2e8;">LABS</span>
-                  </div>
-                  <div style="font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:9px;letter-spacing:0.4em;color:#7d8593;margin-top:8px;text-transform:uppercase;">
-                    Power in purity
-                  </div>
-                </div>
+                <img
+                  src="${LOGO_URL}"
+                  alt="PurePep Labs"
+                  width="80"
+                  height="82"
+                  style="display:block;width:80px;height:auto;border:0;outline:none;text-decoration:none;"
+                >
               </td>
             </tr>
 
