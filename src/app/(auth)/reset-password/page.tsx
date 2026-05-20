@@ -1,20 +1,21 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
-import { LoginForm } from "@/components/shared/login-form";
+import { ResetPasswordForm } from "@/components/shared/reset-password-form";
 
 export const metadata: Metadata = {
-  title: "Sign in — PurePep Labs",
-  description: "Research-only access to the PurePep Labs catalog.",
+  title: "Set a new password — PurePep Labs",
+  description: "Set a new password for your PurePep Labs research account.",
+  robots: { index: false, follow: false },
 };
 
-export default function LoginPage() {
+export default function ResetPasswordPage() {
   return (
     <div className="flex flex-col">
       <div className="section-eyebrow">
-        <span className="whitespace-nowrap text-brand">§ 07</span>
+        <span className="whitespace-nowrap text-brand">§ 10</span>
         <span className="h-px shrink-0 bg-hairline w-[clamp(1.5rem,3vw,2.75rem)]" />
-        <span>Access</span>
+        <span>Set new password</span>
       </div>
 
       <h1
@@ -24,8 +25,8 @@ export default function LoginPage() {
           fontSize: "clamp(1.875rem, 5vw, 3.5rem)",
         }}
       >
-        Return to the{" "}
-        <span className="italic text-gradient-brand">bench.</span>
+        Choose a new{" "}
+        <span className="italic text-gradient-brand">password.</span>
       </h1>
 
       <p
@@ -35,13 +36,13 @@ export default function LoginPage() {
           fontSize: "clamp(0.85rem, 0.3vw + 0.77rem, 0.95rem)",
         }}
       >
-        Research-only access. Sign in with the email your institution
-        registered.
+        Enter a new password to finish recovery. You&rsquo;ll stay signed in
+        once it&rsquo;s saved.
       </p>
 
       <div style={{ marginTop: "clamp(1.5rem, 3vw, 2.5rem)" }}>
         <Suspense fallback={null}>
-          <LoginForm />
+          <ResetPasswordForm />
         </Suspense>
       </div>
 
@@ -54,17 +55,8 @@ export default function LoginPage() {
           fontSize: "clamp(9.5px, 0.25vw + 8.5px, 10.5px)",
         }}
       >
-        <Link
-          href="/forgot-password"
-          className="transition-colors hover:text-brand"
-        >
-          Forgot password?
-        </Link>
-        <Link
-          href="/register"
-          className="transition-colors hover:text-brand"
-        >
-          Create an account
+        <Link href="/login" className="transition-colors hover:text-brand">
+          ← Back to sign in
         </Link>
       </div>
     </div>
