@@ -14,12 +14,10 @@ function client(): Resend | null {
 
 const FROM = process.env.EMAIL_FROM ?? "PurePep Labs <support@purepep-labs.com>";
 
-// Gmail strips data: URIs from <img src> for security, so we have to use a
-// remote URL. The optimized 160px PNG at /images/PurePep_Label_email.png is
-// publicly reachable even under the site lock (the proxy matcher excludes
-// .png paths).
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://thepurepep.com";
-const LOGO_URL = `${SITE_URL}/images/PurePep_Label_email.png`;
+// Brand mark is rendered with CSS-only typography (serif wordmark + mono
+// tagline) instead of a remote image — email clients vary wildly in how
+// (and whether) they load external images, and we kept losing the logo.
+// Typography always renders.
 
 export async function sendWaitlistConfirmation(to: string): Promise<void> {
   const resend = client();
@@ -62,16 +60,17 @@ function waitlistConfirmationHtml(): string {
         <td align="center" style="padding:40px 16px;">
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;background:#0a0d12;">
 
-            <!-- Brand logo -->
+            <!-- Brand mark (CSS-only — no remote image needed) -->
             <tr>
               <td align="center" style="padding:0 0 32px 0;">
-                <img
-                  src="${LOGO_URL}"
-                  alt="PurePep Labs"
-                  width="80"
-                  height="82"
-                  style="display:block;width:80px;height:auto;border:0;outline:none;text-decoration:none;"
-                >
+                <div style="text-align:center;">
+                  <div style="font-family:Georgia,'Times New Roman',serif;font-size:28px;line-height:1;color:#f4f6f9;font-weight:600;letter-spacing:0.04em;">
+                    PUREPEP <span style="color:#4dd2e8;">LABS</span>
+                  </div>
+                  <div style="font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:9px;letter-spacing:0.4em;color:#7d8593;margin-top:8px;text-transform:uppercase;">
+                    Power in purity
+                  </div>
+                </div>
               </td>
             </tr>
 
