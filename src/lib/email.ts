@@ -13,7 +13,7 @@ function client(): Resend | null {
 }
 
 const FROM = process.env.EMAIL_FROM ?? "PurePep Labs <support@purepep-labs.com>";
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://purepep-labs.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://thepurepep.com";
 const LOGO_URL = `${SITE_URL}/images/PurePep_Label.png`;
 
 export async function sendWaitlistConfirmation(to: string): Promise<void> {
