@@ -1,5 +1,3 @@
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
 import { Resend } from "resend";
 
 // Single-instance client — Resend SDK is lightweight and safe to reuse across
@@ -16,29 +14,12 @@ function client(): Resend | null {
 
 const FROM = process.env.EMAIL_FROM ?? "PurePep Labs <support@purepep-labs.com>";
 
-// Inline the logo as a base64 data URI so the email renders the brand even
-// when the recipient's client blocks remote images (Gmail / Apple Mail / etc.
-// default-block external images until "Show images" is clicked). 160px PNG
-// keeps the data URI ~21KB — well under Gmail's 102KB email clip threshold.
-let cachedLogo: string | null = null;
-function logoDataUri(): string {
-  if (cachedLogo) return cachedLogo;
-  try {
-    const path = join(
-      process.cwd(),
-      "public",
-      "images",
-      "PurePep_Label_email.png",
-    );
-    const buf = readFileSync(path);
-    cachedLogo = `data:image/png;base64,${buf.toString("base64")}`;
-  } catch {
-    // Fall back to remote URL if the bundled asset is missing for any reason.
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://thepurepep.com";
-    cachedLogo = `${siteUrl}/images/PurePep_Label.png`;
-  }
-  return cachedLogo;
-}
+// Gmail strips data: URIs from <img src> for security, so we have to use a
+// remote URL. The optimized 160px PNG at /images/PurePep_Label_email.png is
+// publicly reachable even under the site lock (the proxy matcher excludes
+// .png paths).
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://thepurepep.com";
+const LOGO_URL = `${SITE_URL}/images/PurePep_Label_email.png`;
 
 export async function sendWaitlistConfirmation(to: string): Promise<void> {
   const resend = client();
@@ -61,7 +42,6 @@ export async function sendWaitlistConfirmation(to: string): Promise<void> {
 }
 
 function waitlistConfirmationHtml(): string {
-  const logoSrc = logoDataUri();
   return `<!doctype html>
 <html lang="en">
   <head>
@@ -86,7 +66,7 @@ function waitlistConfirmationHtml(): string {
             <tr>
               <td align="center" style="padding:0 0 32px 0;">
                 <img
-                  src="${logoSrc}"
+                  src="${LOGO_URL}"
                   alt="PurePep Labs"
                   width="80"
                   height="82"
