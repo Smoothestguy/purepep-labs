@@ -1,7 +1,6 @@
 import type { MetadataRoute } from "next";
 
-// Placeholder canonical origin — swap before launch.
-const BASE_URL = "https://purepeplabs.com";
+const BASE_URL = "https://thepurepep.com";
 
 const PRODUCT_SLUGS = [
   "bpc-157",

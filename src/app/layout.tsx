@@ -28,8 +28,7 @@ const SITE_DESCRIPTION =
   "Third-party tested, lot-traceable peptides for the serious investigator. Every vial shipped with a Certificate of Analysis.";
 
 export const metadata: Metadata = {
-  // NOTE: URL is a placeholder — swap to the canonical production origin before launch.
-  metadataBase: new URL("https://purepeplabs.com"),
+  metadataBase: new URL("https://thepurepep.com"),
   title: SITE_TITLE,
   description: SITE_DESCRIPTION,
   applicationName: "PurePep Labs",
