@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
 import type { Compound } from "@/lib/compounds";
 import {
@@ -12,23 +15,28 @@ type Props = {
 };
 
 export function ProductCard({ compound: c }: Props) {
+  const [selectedIdx, setSelectedIdx] = useState(0);
+  const variant = c.variants[selectedIdx];
+  const hasMulti = c.variants.length > 1;
   const hasPhoto = compoundHasPhoto(c);
+
+  const slug = slugify(c.name);
+  const href = hasMulti
+    ? `/product/${slug}?dose=${encodeURIComponent(variant.dose)}`
+    : `/product/${slug}`;
+
   return (
-    <Link
-      href={`/product/${slugify(c.name)}`}
+    <article
       className="group relative flex flex-col border border-hairline bg-background transition-colors hover:bg-surface/60"
       style={{
         padding: "clamp(1.1rem, 1.8vw, 1.5rem)",
         gap: "clamp(0.9rem, 1.4vw, 1.25rem)",
       }}
     >
-      {/* Corner ticks — appear on hover */}
       <CardCornerTicks />
 
       {/* Vial image — photoreal render or base + SVG label fallback */}
-      <div
-        className="relative -mx-[clamp(1.1rem,1.8vw,1.5rem)] -mt-[clamp(1.1rem,1.8vw,1.5rem)] aspect-square overflow-hidden border-b border-hairline bg-[oklch(0.05_0.005_250)]"
-      >
+      <div className="relative -mx-[clamp(1.1rem,1.8vw,1.5rem)] -mt-[clamp(1.1rem,1.8vw,1.5rem)] aspect-square overflow-hidden border-b border-hairline bg-[oklch(0.05_0.005_250)]">
         <img
           src={compoundPhotoSrc(c)}
           alt={`${c.name} vial`}
@@ -45,10 +53,13 @@ export function ProductCard({ compound: c }: Props) {
               height: "29%",
             }}
           >
-            <CompoundLabel compound={c} uid={`card-${c.accession}`} />
+            <CompoundLabel
+              compound={c}
+              variant={variant}
+              uid={`card-${c.accession}`}
+            />
           </div>
         )}
-        {/* Soft bottom fade so the image meets the typographic block cleanly */}
         <div
           aria-hidden
           className="pointer-events-none absolute inset-x-0 bottom-0 h-1/4"
@@ -68,13 +79,18 @@ export function ProductCard({ compound: c }: Props) {
         <span className="text-muted-foreground">{c.family}</span>
       </div>
 
-      {/* Compound name */}
+      {/* Compound name — Link with stretched ::after covers the whole card */}
       <div>
         <h3
-          className="font-display leading-none tracking-tight text-foreground transition-colors group-hover:text-brand"
+          className="font-display leading-none tracking-tight text-foreground"
           style={{ fontSize: "clamp(1.75rem, 2.6vw, 2.5rem)" }}
         >
-          {c.name}
+          <Link
+            href={href}
+            className="transition-colors after:absolute after:inset-0 after:content-[''] group-hover:text-brand"
+          >
+            {c.name}
+          </Link>
         </h3>
         <div
           className="mt-1.5 font-mono italic tracking-[0.02em] text-muted-foreground"
@@ -127,7 +143,43 @@ export function ProductCard({ compound: c }: Props) {
         </div>
       </div>
 
-      {/* Stock + price row */}
+      {/* Variant chips — only if multi-variant. Sits above the stretched
+          link via z-10 so chip clicks don't navigate. */}
+      {hasMulti && (
+        <div
+          className="relative z-10 flex flex-wrap gap-1.5"
+          aria-label="Select dose"
+        >
+          {c.variants.map((v, idx) => {
+            const active = idx === selectedIdx;
+            return (
+              <button
+                key={v.dose}
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedIdx(idx);
+                }}
+                aria-pressed={active}
+                className={`border font-mono tracking-[0.15em] uppercase transition-colors ${
+                  active
+                    ? "border-brand bg-brand/10 text-brand"
+                    : "border-hairline text-muted-foreground hover:text-foreground"
+                }`}
+                style={{
+                  fontSize: "clamp(9.5px, 0.25vw + 8.5px, 10.5px)",
+                  paddingInline: "clamp(0.5rem, 0.9vw, 0.7rem)",
+                  paddingBlock: "clamp(0.3rem, 0.5vw, 0.4rem)",
+                }}
+              >
+                {v.dose.replace(/\s+/g, "")}
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Stock + price row — reflects selected variant */}
       <div className="mt-auto flex items-end justify-between gap-3">
         <div
           className="flex items-center gap-2 font-mono tracking-[0.22em] uppercase"
@@ -135,10 +187,10 @@ export function ProductCard({ compound: c }: Props) {
         >
           <span
             className={`size-1.5 rounded-full ${
-              c.inStock > 100 ? "bg-brand" : "bg-muted-foreground"
+              variant.inStock > 100 ? "bg-brand" : "bg-muted-foreground"
             }`}
           />
-          <span className="text-foreground">{c.inStock}</span>
+          <span className="text-foreground">{variant.inStock}</span>
           <span className="text-muted-foreground">in stock</span>
         </div>
         <div
@@ -151,10 +203,10 @@ export function ProductCard({ compound: c }: Props) {
           >
             USD
           </span>
-          <span>${c.price}</span>
+          <span>${variant.price}</span>
         </div>
       </div>
-    </Link>
+    </article>
   );
 }
 

@@ -4,6 +4,15 @@ export type Accent = {
   to: string;
 };
 
+export type Variant = {
+  /** Display label for the dose, e.g. "10 mg", "5 mg + 5 mg", "10 mL". */
+  dose: string;
+  price: number;
+  inStock: number;
+  lot: string;
+  coaDate: string;
+};
+
 export type Compound = {
   accession: string;
   name: string;
@@ -11,17 +20,18 @@ export type Compound = {
   sequence: string;
   molecularWeight: number;
   purity: number;
-  dose: string;
-  price: number;
-  inStock: number;
   category: "structural" | "metabolic" | "nootropic" | "senescence";
   family: string;
   blurb: string;
-  lot: string;
-  coaDate: string;
+  /** At least one variant; first entry is the default the card surfaces. */
+  variants: Variant[];
   /** Per-compound label accent — only the hex logo gradient changes per SKU */
   accent: Accent;
 };
+
+// PLACEHOLDER_REVIEW: entries marked with this comment have placeholder values
+// (sequence "TBD", molecularWeight 0, purity 99, lot "TBD", coaDate "TBD")
+// inherited from the pricing-list import. Replace before going live.
 
 export const compounds: Compound[] = [
   {
@@ -31,15 +41,13 @@ export const compounds: Compound[] = [
     sequence: "GEPPPGKPADDAGLV",
     molecularWeight: 1419.53,
     purity: 99.42,
-    dose: "5 mg",
-    price: 68,
-    inStock: 214,
     category: "structural",
     family: "Pentadecapeptide",
     blurb:
       "Gastric pentadecapeptide. Synthesised and freeze-dried under inert argon.",
-    lot: "A-4418",
-    coaDate: "2026-03-14",
+    variants: [
+      { dose: "10 mg", price: 39.99, inStock: 214, lot: "A-4418", coaDate: "2026-03-14" },
+    ],
     accent: { from: "oklch(0.65 0.22 258)", to: "oklch(0.82 0.15 210)" },
   },
   {
@@ -49,15 +57,13 @@ export const compounds: Compound[] = [
     sequence: "LKKTETQ",
     molecularWeight: 889.04,
     purity: 99.11,
-    dose: "5 mg",
-    price: 74,
-    inStock: 138,
     category: "structural",
     family: "Thymosin fragment",
     blurb:
       "Actin-sequestering peptide fragment. Lyophilised, sealed at 18 °C.",
-    lot: "A-4420",
-    coaDate: "2026-03-17",
+    variants: [
+      { dose: "10 mg", price: 44.99, inStock: 138, lot: "A-4420", coaDate: "2026-03-17" },
+    ],
     accent: { from: "oklch(0.78 0.16 195)", to: "oklch(0.85 0.13 175)" },
   },
   {
@@ -67,14 +73,13 @@ export const compounds: Compound[] = [
     sequence: "GHK · Cu²⁺",
     molecularWeight: 402.92,
     purity: 99.68,
-    dose: "50 mg",
-    price: 52,
-    inStock: 402,
     category: "senescence",
     family: "Copper tripeptide",
     blurb: "Endogenous tripeptide–copper complex. Royal blue lyophilisate.",
-    lot: "B-1904",
-    coaDate: "2026-03-09",
+    variants: [
+      { dose: "50 mg", price: 34.99, inStock: 402, lot: "B-1904", coaDate: "2026-03-09" },
+      { dose: "100 mg", price: 44.99, inStock: 220, lot: "B-1904", coaDate: "2026-03-09" },
+    ],
     accent: { from: "oklch(0.55 0.18 60)", to: "oklch(0.78 0.16 75)" },
   },
   {
@@ -84,14 +89,13 @@ export const compounds: Compound[] = [
     sequence: "MEHFPGP",
     molecularWeight: 813.93,
     purity: 99.05,
-    dose: "10 mg",
-    price: 84,
-    inStock: 96,
     category: "nootropic",
     family: "ACTH analogue",
-    blurb: "Synthetic analogue of ACTH(4-10). Sequence conserved from the endogenous ACTH fragment.",
-    lot: "C-0312",
-    coaDate: "2026-03-22",
+    blurb:
+      "Synthetic analogue of ACTH(4-10). Sequence conserved from the endogenous ACTH fragment.",
+    variants: [
+      { dose: "10 mg", price: 49.99, inStock: 96, lot: "C-0312", coaDate: "2026-03-22" },
+    ],
     accent: { from: "oklch(0.55 0.22 305)", to: "oklch(0.72 0.2 340)" },
   },
   {
@@ -101,14 +105,12 @@ export const compounds: Compound[] = [
     sequence: "TKPRPGP",
     molecularWeight: 751.87,
     purity: 99.24,
-    dose: "10 mg",
-    price: 79,
-    inStock: 64,
     category: "nootropic",
     family: "Tuftsin analogue",
     blurb: "Tuftsin analogue. Stored at −20 °C; thaw once only.",
-    lot: "C-0318",
-    coaDate: "2026-03-22",
+    variants: [
+      { dose: "10 mg", price: 44.99, inStock: 64, lot: "C-0318", coaDate: "2026-03-22" },
+    ],
     accent: { from: "oklch(0.5 0.2 275)", to: "oklch(0.78 0.14 220)" },
   },
   {
@@ -118,14 +120,13 @@ export const compounds: Compound[] = [
     sequence: "44 aa (hGRF analogue)",
     molecularWeight: 5135.85,
     purity: 99.03,
-    dose: "5 mg",
-    price: 148,
-    inStock: 42,
     category: "metabolic",
     family: "GHRH analogue",
     blurb: "Stabilised GHRH(1-44) analogue. Amber glass, N₂ headspace.",
-    lot: "D-2207",
-    coaDate: "2026-03-28",
+    variants: [
+      { dose: "10 mg", price: 49.99, inStock: 42, lot: "D-2207", coaDate: "2026-03-28" },
+      { dose: "20 mg", price: 84.99, inStock: 36, lot: "D-2207", coaDate: "2026-03-28" },
+    ],
     accent: { from: "oklch(0.6 0.18 160)", to: "oklch(0.78 0.14 180)" },
   },
   {
@@ -135,14 +136,12 @@ export const compounds: Compound[] = [
     sequence: "AEDG",
     molecularWeight: 390.35,
     purity: 99.74,
-    dose: "10 mg",
-    price: 58,
-    inStock: 188,
     category: "senescence",
     family: "Tetrapeptide",
     blurb: "Telomerase-associated tetrapeptide. Isolated from bovine pineal.",
-    lot: "B-1911",
-    coaDate: "2026-03-11",
+    variants: [
+      { dose: "10 mg", price: 58, inStock: 188, lot: "B-1911", coaDate: "2026-03-11" },
+    ],
     accent: { from: "oklch(0.45 0.2 290)", to: "oklch(0.7 0.18 320)" },
   },
   {
@@ -152,16 +151,244 @@ export const compounds: Compound[] = [
     sequence: "MRWQEMGYIFYPRKLR",
     molecularWeight: 2174.58,
     purity: 99.19,
-    dose: "10 mg",
-    price: 132,
-    inStock: 76,
     category: "metabolic",
     family: "Mitochondrial peptide",
     blurb:
       "16-residue peptide encoded within the mitochondrial 12S rRNA region.",
-    lot: "D-2215",
-    coaDate: "2026-03-29",
+    variants: [
+      { dose: "10 mg", price: 34.99, inStock: 76, lot: "D-2215", coaDate: "2026-03-29" },
+      { dose: "40 mg", price: 59.99, inStock: 48, lot: "D-2215", coaDate: "2026-03-29" },
+    ],
     accent: { from: "oklch(0.55 0.22 35)", to: "oklch(0.75 0.18 55)" },
+  },
+  // PLACEHOLDER_REVIEW
+  {
+    accession: "PP-009",
+    name: "BAC Water",
+    codename: "Bacteriostatic Water",
+    sequence: "TBD",
+    molecularWeight: 0,
+    purity: 99,
+    category: "structural",
+    family: "Diluent",
+    blurb:
+      "Sterile bacteriostatic water for reconstitution. 0.9% benzyl alcohol.",
+    variants: [
+      { dose: "10 mL", price: 5.99, inStock: 500, lot: "TBD", coaDate: "TBD" },
+    ],
+    accent: { from: "oklch(0.85 0.04 220)", to: "oklch(0.92 0.03 200)" },
+  },
+  // PLACEHOLDER_REVIEW
+  {
+    accession: "PP-010",
+    name: "Wolverine",
+    codename: "BPC-157 / TB-500 Blend",
+    sequence: "TBD",
+    molecularWeight: 0,
+    purity: 99,
+    category: "structural",
+    family: "Recovery blend",
+    blurb:
+      "Co-lyophilised blend of BPC-157 and TB-500 in a single vial.",
+    variants: [
+      { dose: "5 mg + 5 mg", price: 39.99, inStock: 120, lot: "TBD", coaDate: "TBD" },
+    ],
+    accent: { from: "oklch(0.62 0.2 30)", to: "oklch(0.8 0.16 50)" },
+  },
+  // PLACEHOLDER_REVIEW
+  {
+    accession: "PP-011",
+    name: "CJC-1295 Ipamorelin",
+    codename: "GHRH / GHRP Blend",
+    sequence: "TBD",
+    molecularWeight: 0,
+    purity: 99,
+    category: "metabolic",
+    family: "GHRH/GHRP blend",
+    blurb: "CJC-1295 (no-DAC) paired with Ipamorelin. Co-lyophilised.",
+    variants: [
+      { dose: "5 mg + 5 mg", price: 49.99, inStock: 140, lot: "TBD", coaDate: "TBD" },
+    ],
+    accent: { from: "oklch(0.6 0.18 145)", to: "oklch(0.8 0.14 170)" },
+  },
+  // PLACEHOLDER_REVIEW
+  {
+    accession: "PP-012",
+    name: "Retatrutide",
+    codename: "Triple-Agonist GLP-1/GIP/Glucagon",
+    sequence: "TBD",
+    molecularWeight: 0,
+    purity: 99,
+    category: "metabolic",
+    family: "Tri-agonist",
+    blurb: "GLP-1 / GIP / glucagon triple receptor agonist. Lyophilised.",
+    variants: [
+      { dose: "10 mg", price: 64.99, inStock: 80, lot: "TBD", coaDate: "TBD" },
+      { dose: "20 mg", price: 79.99, inStock: 70, lot: "TBD", coaDate: "TBD" },
+      { dose: "30 mg", price: 94.99, inStock: 60, lot: "TBD", coaDate: "TBD" },
+      { dose: "60 mg", price: 134.99, inStock: 40, lot: "TBD", coaDate: "TBD" },
+    ],
+    accent: { from: "oklch(0.58 0.2 245)", to: "oklch(0.78 0.15 220)" },
+  },
+  // PLACEHOLDER_REVIEW
+  {
+    accession: "PP-013",
+    name: "Tirzepatide",
+    codename: "GLP-1 / GIP Dual Agonist",
+    sequence: "TBD",
+    molecularWeight: 0,
+    purity: 99,
+    category: "metabolic",
+    family: "Dual agonist",
+    blurb: "GLP-1 / GIP dual receptor agonist. Lyophilised.",
+    variants: [
+      { dose: "20 mg", price: 69.99, inStock: 90, lot: "TBD", coaDate: "TBD" },
+    ],
+    accent: { from: "oklch(0.62 0.18 200)", to: "oklch(0.8 0.14 230)" },
+  },
+  // PLACEHOLDER_REVIEW
+  {
+    accession: "PP-014",
+    name: "GLOW 70",
+    codename: "Aesthetic Blend",
+    sequence: "TBD",
+    molecularWeight: 0,
+    purity: 99,
+    category: "senescence",
+    family: "Aesthetic blend",
+    blurb: "Multi-peptide aesthetic / skin blend. 70 mg total.",
+    variants: [
+      { dose: "70 mg", price: 69.99, inStock: 60, lot: "TBD", coaDate: "TBD" },
+    ],
+    accent: { from: "oklch(0.7 0.18 340)", to: "oklch(0.85 0.12 20)" },
+  },
+  // PLACEHOLDER_REVIEW
+  {
+    accession: "PP-015",
+    name: "Ipamorelin",
+    codename: "Selective GHRP",
+    sequence: "TBD",
+    molecularWeight: 0,
+    purity: 99,
+    category: "metabolic",
+    family: "GHRP",
+    blurb: "Selective growth-hormone releasing peptide. Pentapeptide.",
+    variants: [
+      { dose: "10 mg", price: 39.99, inStock: 150, lot: "TBD", coaDate: "TBD" },
+    ],
+    accent: { from: "oklch(0.65 0.18 130)", to: "oklch(0.82 0.14 155)" },
+  },
+  // PLACEHOLDER_REVIEW
+  {
+    accession: "PP-016",
+    name: "KPV",
+    codename: "Anti-Inflammatory Tripeptide",
+    sequence: "KPV",
+    molecularWeight: 0,
+    purity: 99,
+    category: "structural",
+    family: "α-MSH fragment",
+    blurb: "C-terminal tripeptide of α-MSH. Anti-inflammatory.",
+    variants: [
+      { dose: "10 mg", price: 24.99, inStock: 200, lot: "TBD", coaDate: "TBD" },
+    ],
+    accent: { from: "oklch(0.68 0.16 90)", to: "oklch(0.85 0.12 110)" },
+  },
+  // PLACEHOLDER_REVIEW
+  {
+    accession: "PP-017",
+    name: "Mazdutide",
+    codename: "GLP-1 / Glucagon Dual Agonist",
+    sequence: "TBD",
+    molecularWeight: 0,
+    purity: 99,
+    category: "metabolic",
+    family: "Dual agonist",
+    blurb: "GLP-1 / glucagon dual receptor agonist. Lyophilised.",
+    variants: [
+      { dose: "10 mg", price: 54.99, inStock: 75, lot: "TBD", coaDate: "TBD" },
+    ],
+    accent: { from: "oklch(0.6 0.2 175)", to: "oklch(0.8 0.14 195)" },
+  },
+  // PLACEHOLDER_REVIEW
+  {
+    accession: "PP-018",
+    name: "5-Amino-1MQ",
+    codename: "NNMT Inhibitor",
+    sequence: "Small molecule",
+    molecularWeight: 0,
+    purity: 99,
+    category: "metabolic",
+    family: "Small molecule",
+    blurb: "5-amino-1-methylquinolinium iodide. NNMT inhibitor.",
+    variants: [
+      { dose: "10 mg", price: 29.99, inStock: 110, lot: "TBD", coaDate: "TBD" },
+    ],
+    accent: { from: "oklch(0.6 0.2 50)", to: "oklch(0.8 0.16 75)" },
+  },
+  // PLACEHOLDER_REVIEW
+  {
+    accession: "PP-019",
+    name: "Glutathione",
+    codename: "Reduced Glutathione",
+    sequence: "γ-ECG",
+    molecularWeight: 0,
+    purity: 99,
+    category: "senescence",
+    family: "Tripeptide antioxidant",
+    blurb: "Reduced glutathione (GSH). 1.5 g per vial.",
+    variants: [
+      { dose: "1500 mg", price: 39.99, inStock: 100, lot: "TBD", coaDate: "TBD" },
+    ],
+    accent: { from: "oklch(0.7 0.14 145)", to: "oklch(0.86 0.1 165)" },
+  },
+  // PLACEHOLDER_REVIEW
+  {
+    accession: "PP-020",
+    name: "PT-141",
+    codename: "Bremelanotide",
+    sequence: "TBD",
+    molecularWeight: 0,
+    purity: 99,
+    category: "nootropic",
+    family: "Melanocortin agonist",
+    blurb: "Melanocortin receptor agonist. Cyclic heptapeptide.",
+    variants: [
+      { dose: "10 mg", price: 34.99, inStock: 130, lot: "TBD", coaDate: "TBD" },
+    ],
+    accent: { from: "oklch(0.55 0.22 15)", to: "oklch(0.75 0.18 350)" },
+  },
+  // PLACEHOLDER_REVIEW
+  {
+    accession: "PP-021",
+    name: "IGF-1 LR3",
+    codename: "Long-Arg3 IGF-1",
+    sequence: "TBD",
+    molecularWeight: 0,
+    purity: 99,
+    category: "structural",
+    family: "IGF analogue",
+    blurb: "Long Arg3 insulin-like growth factor 1 analogue.",
+    variants: [
+      { dose: "1 mg", price: 49.99, inStock: 80, lot: "TBD", coaDate: "TBD" },
+    ],
+    accent: { from: "oklch(0.6 0.18 280)", to: "oklch(0.78 0.14 250)" },
+  },
+  // PLACEHOLDER_REVIEW
+  {
+    accession: "PP-022",
+    name: "Melanotan 2",
+    codename: "α-MSH Analogue",
+    sequence: "TBD",
+    molecularWeight: 0,
+    purity: 99,
+    category: "senescence",
+    family: "Melanocortin agonist",
+    blurb: "Cyclic α-MSH analogue. Pigmentation peptide.",
+    variants: [
+      { dose: "10 mg", price: 39.99, inStock: 140, lot: "TBD", coaDate: "TBD" },
+    ],
+    accent: { from: "oklch(0.5 0.2 50)", to: "oklch(0.7 0.18 30)" },
   },
 ];
 
@@ -178,6 +405,28 @@ export function slugify(name: string): string {
 
 export function compoundBySlug(slug: string): Compound | undefined {
   return compounds.find((c) => slugify(c.name) === slug);
+}
+
+/** First variant — used as the default surfaced on the catalog card. */
+export function defaultVariant(c: Compound): Variant {
+  return c.variants[0];
+}
+
+export function variantByDose(c: Compound, dose: string): Variant | undefined {
+  return c.variants.find((v) => v.dose === dose);
+}
+
+export function hasMultipleVariants(c: Compound): boolean {
+  return c.variants.length > 1;
+}
+
+export function priceRange(c: Compound): { min: number; max: number } {
+  const prices = c.variants.map((v) => v.price);
+  return { min: Math.min(...prices), max: Math.max(...prices) };
+}
+
+export function totalInStock(c: Compound): number {
+  return c.variants.reduce((sum, v) => sum + v.inStock, 0);
 }
 
 const COMPOUND_PHOTO: Record<string, string> = {

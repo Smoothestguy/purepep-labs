@@ -1,12 +1,18 @@
-import type { Compound } from "@/lib/compounds";
-import { compoundHasPhoto, compoundPhotoSrc } from "@/lib/compounds";
+import type { Compound, Variant } from "@/lib/compounds";
+import {
+  compoundHasPhoto,
+  compoundPhotoSrc,
+  defaultVariant,
+} from "@/lib/compounds";
 import { CompoundLabel } from "./compound-label";
 
 type Props = {
   compound: Compound;
+  variant?: Variant;
 };
 
-export function CompoundVial({ compound: c }: Props) {
+export function CompoundVial({ compound: c, variant }: Props) {
+  const v = variant ?? defaultVariant(c);
   const hasPhoto = compoundHasPhoto(c);
 
   return (
@@ -30,7 +36,7 @@ export function CompoundVial({ compound: c }: Props) {
               height: "29%",
             }}
           >
-            <CompoundLabel compound={c} uid={c.accession} />
+            <CompoundLabel compound={c} variant={v} uid={c.accession} />
           </div>
         )}
 
@@ -50,7 +56,7 @@ export function CompoundVial({ compound: c }: Props) {
           style={{ fontSize: "clamp(9px, 0.25vw + 8px, 10.5px)" }}
         >
           <div>Spec. {c.accession}</div>
-          <div className="opacity-60">Lot {c.lot}</div>
+          <div className="opacity-60">Lot {v.lot}</div>
         </div>
 
         <div
@@ -60,7 +66,7 @@ export function CompoundVial({ compound: c }: Props) {
           <div>
             <div className="opacity-60">Subject</div>
             <div className="mt-1">
-              {c.name} · {c.dose} · lyophilised
+              {c.name} · {v.dose} · lyophilised
             </div>
           </div>
           <div className="text-right">
@@ -77,7 +83,7 @@ export function CompoundVial({ compound: c }: Props) {
           fontSize: "clamp(9px, 0.25vw + 8px, 10.5px)",
         }}
       >
-        Fig. — Amber borosilicate vial, argon-flushed, {c.dose} fill.
+        Fig. — Amber borosilicate vial, argon-flushed, {v.dose} fill.
       </p>
     </div>
   );

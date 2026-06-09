@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useState } from "react";
-import { compounds, type Compound } from "@/lib/compounds";
+import { compounds, defaultVariant, type Compound } from "@/lib/compounds";
 import { useCart } from "@/lib/cart/store";
 
 const Scene = dynamic(
@@ -27,6 +27,7 @@ const CATEGORY_LABEL: Record<Compound["category"], string> = {
 export function CinematicHero() {
   const [index, setIndex] = useState(0);
   const compound = compounds[index];
+  const variant = defaultVariant(compound);
   const bg = BG_BY_CATEGORY[compound.category];
   const { addItem } = useCart();
 
@@ -79,7 +80,7 @@ export function CinematicHero() {
           className="font-mono tracking-[0.22em] uppercase text-foreground/70"
           style={{ fontSize: "10.5px" }}
         >
-          Spec. {compound.accession} · Lot {compound.lot}
+          Spec. {compound.accession} · Lot {variant.lot}
         </div>
       </div>
 
@@ -151,17 +152,17 @@ export function CinematicHero() {
               className="font-mono tracking-[0.22em] uppercase text-foreground/60"
               style={{ fontSize: "10.5px" }}
             >
-              {compound.dose}
+              {variant.dose}
             </div>
             <div
               className="mt-1 font-display leading-none tracking-tight text-foreground"
               style={{ fontSize: "clamp(1.5rem, 2.5vw, 2.25rem)" }}
             >
-              ${compound.price}
+              ${variant.price}
             </div>
           </div>
           <button
-            onClick={() => addItem(compound)}
+            onClick={() => addItem(compound, variant)}
             className="bg-brand font-mono tracking-[0.3em] uppercase text-brand-foreground transition-all hover:shadow-[0_0_0_4px_oklch(0.82_0.15_210_/_0.18)]"
             style={{
               paddingInline: "clamp(1rem, 1.6vw, 1.4rem)",

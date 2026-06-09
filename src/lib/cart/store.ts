@@ -3,15 +3,17 @@
 import { useEffect, useState } from "react";
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import type { Compound } from "@/lib/compounds";
+import type { Compound, Variant } from "@/lib/compounds";
 import { slugify } from "@/lib/compounds";
 
 /**
- * Cart shape — tiny, slug-keyed, fully persistable to localStorage.
- * We keep only the line-level fields we render so a stale cart after a
- * catalog update still renders, even if a compound's price drifted.
+ * Cart shape — composite-keyed by `${slug}::${dose}` so different variants
+ * (e.g. Retatrutide 10mg vs 60mg) are independent line items. We snapshot
+ * the line-level fields we render so a stale cart after a catalog update
+ * still renders, even if a price drifted.
  */
 export type CartItem = {
+  key: string;
   slug: string;
   name: string;
   accession: string;
@@ -22,29 +24,28 @@ export type CartItem = {
 
 export type CartState = {
   items: CartItem[];
-  addItem: (compound: Compound) => void;
-  removeItem: (slug: string) => void;
-  updateQuantity: (slug: string, qty: number) => void;
+  addItem: (compound: Compound, variant: Variant) => void;
+  removeItem: (key: string) => void;
+  updateQuantity: (key: string, qty: number) => void;
   clear: () => void;
 };
 
-/**
- * We use `skipHydration: true` so the raw store is identical on server
- * and client at first render. Consumers call `useCart()` which waits for
- * `persist.rehydrate()` before exposing the persisted snapshot. This
- * avoids React hydration mismatch warnings entirely.
- */
+export function cartItemKey(slug: string, dose: string): string {
+  return `${slug}::${dose}`;
+}
+
 export const useCartStore = create<CartState>()(
   persist(
     (set, get) => ({
       items: [],
-      addItem: (compound) => {
+      addItem: (compound, variant) => {
         const slug = slugify(compound.name);
-        const existing = get().items.find((i) => i.slug === slug);
+        const key = cartItemKey(slug, variant.dose);
+        const existing = get().items.find((i) => i.key === key);
         if (existing) {
           set({
             items: get().items.map((i) =>
-              i.slug === slug ? { ...i, quantity: i.quantity + 1 } : i,
+              i.key === key ? { ...i, quantity: i.quantity + 1 } : i,
             ),
           });
           return;
@@ -53,26 +54,27 @@ export const useCartStore = create<CartState>()(
           items: [
             ...get().items,
             {
+              key,
               slug,
               name: compound.name,
               accession: compound.accession,
-              dose: compound.dose,
-              price: compound.price,
+              dose: variant.dose,
+              price: variant.price,
               quantity: 1,
             },
           ],
         });
       },
-      removeItem: (slug) =>
-        set({ items: get().items.filter((i) => i.slug !== slug) }),
-      updateQuantity: (slug, qty) => {
+      removeItem: (key) =>
+        set({ items: get().items.filter((i) => i.key !== key) }),
+      updateQuantity: (key, qty) => {
         if (qty <= 0) {
-          set({ items: get().items.filter((i) => i.slug !== slug) });
+          set({ items: get().items.filter((i) => i.key !== key) });
           return;
         }
         set({
           items: get().items.map((i) =>
-            i.slug === slug ? { ...i, quantity: qty } : i,
+            i.key === key ? { ...i, quantity: qty } : i,
           ),
         });
       },
@@ -82,8 +84,7 @@ export const useCartStore = create<CartState>()(
       name: "purepep-cart",
       storage: createJSONStorage(() =>
         typeof window === "undefined"
-          ? // Dummy storage for SSR — persist never actually runs
-            {
+          ? {
               getItem: () => null,
               setItem: () => {},
               removeItem: () => {},
@@ -95,7 +96,6 @@ export const useCartStore = create<CartState>()(
   ),
 );
 
-/** Derived selectors — keep subtotal/count OUT of stored state. */
 export function selectSubtotal(state: CartState): number {
   return state.items.reduce((sum, i) => sum + i.price * i.quantity, 0);
 }
@@ -104,20 +104,11 @@ export function selectCount(state: CartState): number {
   return state.items.reduce((sum, i) => sum + i.quantity, 0);
 }
 
-/**
- * Hydration-safe hook. Returns `hydrated: false` and an empty snapshot on
- * the first client render, then flips to `true` with the real persisted
- * state on the second render. Components use `hydrated` to gate count
- * badges, empty-state copy, etc.
- */
 export function useCart() {
   const state = useCartStore();
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    // Rehydrate once on mount. No-op on the server. The synchronous
-    // setState is intentional — we need the next render to read the
-    // rehydrated store so SSR/CSR markup stays identical on first paint.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     void useCartStore.persist.rehydrate();
     // eslint-disable-next-line react-hooks/set-state-in-effect

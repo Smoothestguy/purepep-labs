@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { compounds } from "@/lib/compounds";
+import { compounds, defaultVariant } from "@/lib/compounds";
 import { CoaArchive, type CoaRow } from "./coa-archive";
 
 export const metadata: Metadata = {
@@ -44,22 +44,23 @@ function buildRows(): CoaRow[] {
   const rows: CoaRow[] = [];
 
   for (const c of compounds) {
+    const v = defaultVariant(c);
     const lab = labFor(c.accession);
     const purityStr = `${c.purity.toFixed(2)}%`;
 
     // Current lot
     rows.push({
-      lot: c.lot,
+      lot: v.lot,
       compound: c.name,
       accession: c.accession,
       purity: purityStr,
-      date: c.coaDate.replaceAll("-", "."),
+      date: v.coaDate.replaceAll("-", "."),
       lab,
     });
 
     // Three historical lots, stepping back roughly monthly with varying step sizes
-    const historicalLots = synthesiseHistoricalLots(c.lot, [18, 36, 54]);
-    const historicalDates = [2, 4, 6].map((m) => monthsBack(c.coaDate, m));
+    const historicalLots = synthesiseHistoricalLots(v.lot, [18, 36, 54]);
+    const historicalDates = [2, 4, 6].map((m) => monthsBack(v.coaDate, m));
     // Slight purity drift for plausibility
     const historicalPurities = [
       (c.purity - 0.05).toFixed(2),

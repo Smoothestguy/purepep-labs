@@ -1,7 +1,10 @@
-import type { Compound } from "@/lib/compounds";
+import type { Compound, Variant } from "@/lib/compounds";
+import { defaultVariant } from "@/lib/compounds";
 
 type Props = {
   compound: Compound;
+  /** Optional — falls back to the compound's default variant. */
+  variant?: Variant;
   /** Unique id is required because multiple labels coexist on a page (gradient defs collide otherwise) */
   uid: string;
 };
@@ -15,7 +18,8 @@ type Props = {
  * into the base photo, so this works whether or not you regenerate the
  * base image with a blank label.
  */
-export function CompoundLabel({ compound: c, uid }: Props) {
+export function CompoundLabel({ compound: c, variant, uid }: Props) {
+  const v = variant ?? defaultVariant(c);
   const gradId = `vial-grad-${uid}`;
   const paperId = `vial-paper-${uid}`;
   const shineId = `vial-shine-${uid}`;
@@ -121,7 +125,7 @@ export function CompoundLabel({ compound: c, uid }: Props) {
         fill="#6b7280"
         letterSpacing="1.6"
       >
-        {c.accession} · {c.dose.toUpperCase().replace(" ", "")}
+        {c.accession} · {v.dose.toUpperCase().replace(" ", "")}
       </text>
     </svg>
   );

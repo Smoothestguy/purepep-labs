@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { compounds } from "@/lib/compounds";
+import { compounds, defaultVariant } from "@/lib/compounds";
 
 const LAB_BY_ACCESSION: Record<string, "Janoshik" | "SSL"> = {
   "PP-003": "SSL",
@@ -12,13 +12,16 @@ function formatDotted(iso: string) {
 }
 
 const rows = [...compounds]
-  .sort((a, b) => (a.coaDate < b.coaDate ? 1 : a.coaDate > b.coaDate ? -1 : 0))
+  .map((c) => ({ c, v: defaultVariant(c) }))
+  .sort((a, b) =>
+    a.v.coaDate < b.v.coaDate ? 1 : a.v.coaDate > b.v.coaDate ? -1 : 0,
+  )
   .slice(0, 6)
-  .map((c) => ({
-    lot: c.lot,
+  .map(({ c, v }) => ({
+    lot: v.lot,
     compound: c.name,
     purity: `${c.purity.toFixed(2)}%`,
-    date: formatDotted(c.coaDate),
+    date: formatDotted(v.coaDate),
     lab: LAB_BY_ACCESSION[c.accession] ?? "Janoshik",
   }));
 

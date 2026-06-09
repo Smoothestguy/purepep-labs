@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { compounds, slugify } from "@/lib/compounds";
+import { compounds, defaultVariant, slugify } from "@/lib/compounds";
 
 export function CompoundIndex() {
   return (
@@ -86,7 +86,9 @@ export function CompoundIndex() {
 
       {/* Rows */}
       <div className="mx-auto w-full max-w-[var(--content-max)] pad-x">
-        {compounds.map((c, i) => (
+        {compounds.map((c, i) => {
+          const v = defaultVariant(c);
+          return (
           <Link
             key={c.accession}
             href={`/product/${slugify(c.name)}`}
@@ -117,7 +119,7 @@ export function CompoundIndex() {
                   <span className="font-mono tracking-[0.25em] uppercase text-muted-foreground" style={{ fontSize: "clamp(9px, 0.25vw + 8px, 10px)" }}>
                     USD
                   </span>
-                  <span>${c.price}</span>
+                  <span>${v.price}</span>
                 </div>
               </div>
               <div>
@@ -158,7 +160,7 @@ export function CompoundIndex() {
                   <div className="tracking-[0.22em] uppercase text-muted-foreground" style={{ fontSize: "clamp(9px, 0.25vw + 8px, 10px)" }}>
                     Lot
                   </div>
-                  <div className="mt-1">{c.lot}</div>
+                  <div className="mt-1">{v.lot}</div>
                 </div>
                 <div>
                   <div className="tracking-[0.22em] uppercase text-muted-foreground" style={{ fontSize: "clamp(9px, 0.25vw + 8px, 10px)" }}>
@@ -171,7 +173,7 @@ export function CompoundIndex() {
                     Purity · Stock
                   </div>
                   <div className="mt-1 text-brand">
-                    {c.purity}% · {c.inStock}
+                    {c.purity}% · {v.inStock}
                   </div>
                 </div>
               </div>
@@ -215,7 +217,7 @@ export function CompoundIndex() {
                   style={{ fontSize: "clamp(10px, 0.3vw + 9px, 11px)" }}
                 >
                   {c.sequence}
-                  <span className="text-muted-foreground"> · Lot {c.lot}</span>
+                  <span className="text-muted-foreground"> · Lot {v.lot}</span>
                 </div>
               </div>
               <div
@@ -232,16 +234,16 @@ export function CompoundIndex() {
                 <div className="flex items-center justify-end gap-2">
                   <span
                     className={`size-1.5 rounded-full ${
-                      c.inStock > 100 ? "bg-brand" : "bg-muted-foreground"
+                      v.inStock > 100 ? "bg-brand" : "bg-muted-foreground"
                     }`}
                   />
-                  <span className="text-foreground">{c.inStock}</span>
+                  <span className="text-foreground">{v.inStock}</span>
                 </div>
                 <div
                   className="mt-1 uppercase tracking-[0.2em] text-muted-foreground"
                   style={{ fontSize: "clamp(9px, 0.2vw + 8.5px, 10px)" }}
                 >
-                  {c.dose}
+                  {v.dose}
                 </div>
               </div>
               <div
@@ -251,7 +253,7 @@ export function CompoundIndex() {
                 <span className="font-mono tracking-[0.25em] uppercase text-muted-foreground" style={{ fontSize: "clamp(9px, 0.2vw + 8.5px, 10px)" }}>
                   USD
                 </span>
-                <span>${c.price}</span>
+                <span>${v.price}</span>
               </div>
             </div>
 
@@ -300,7 +302,7 @@ export function CompoundIndex() {
                 style={{ fontSize: "clamp(10px, 0.3vw + 9px, 11px)" }}
               >
                 <div className="truncate">{c.sequence}</div>
-                <div className="mt-1 text-muted-foreground">Lot {c.lot}</div>
+                <div className="mt-1 text-muted-foreground">Lot {v.lot}</div>
               </div>
               <div
                 className="font-mono tracking-[0.1em]"
@@ -316,16 +318,16 @@ export function CompoundIndex() {
                 <div className="flex items-center justify-end gap-2">
                   <span
                     className={`size-1.5 rounded-full ${
-                      c.inStock > 100 ? "bg-brand" : "bg-muted-foreground"
+                      v.inStock > 100 ? "bg-brand" : "bg-muted-foreground"
                     }`}
                   />
-                  <span className="text-foreground">{c.inStock}</span>
+                  <span className="text-foreground">{v.inStock}</span>
                 </div>
                 <div
                   className="mt-1 uppercase tracking-[0.2em] text-muted-foreground"
                   style={{ fontSize: "clamp(9px, 0.2vw + 8.5px, 10px)" }}
                 >
-                  {c.dose} fill
+                  {v.dose} fill
                 </div>
               </div>
               <div
@@ -335,11 +337,12 @@ export function CompoundIndex() {
                 <span className="font-mono tracking-[0.25em] uppercase text-muted-foreground" style={{ fontSize: "clamp(9px, 0.2vw + 8.5px, 10px)" }}>
                   USD
                 </span>
-                <span>${c.price}</span>
+                <span>${v.price}</span>
               </div>
             </div>
           </Link>
-        ))}
+          );
+        })}
       </div>
 
       <div

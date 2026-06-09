@@ -8,9 +8,9 @@ import {
   type Compound,
 } from "@/lib/compounds";
 import { ProductCard } from "@/components/shop/product-card";
-import { ProductGrid } from "@/components/shop/product-grid";
-import { BuyButton } from "@/components/shop/buy-button";
-import { CompoundVial } from "@/components/shop/compound-vial";
+import { ProductDetailSidebar } from "@/components/shop/product-detail-sidebar";
+import { ProductSpecsList } from "@/components/shop/product-specs-list";
+import { defaultVariant } from "@/lib/compounds";
 
 type Params = Promise<{ slug: string }>;
 
@@ -30,7 +30,7 @@ export async function generateMetadata({
       title: "Not found — PurePep Labs",
     };
   }
-  const description = `${compound.blurb} · ${compound.molecularWeight} g/mol · ${compound.purity}% HPLC-MS purity · ${compound.dose} fill. For laboratory research use only.`;
+  const description = `${compound.blurb} · ${compound.molecularWeight} g/mol · ${compound.purity}% HPLC-MS purity · ${defaultVariant(compound).dose} fill. For laboratory research use only.`;
   const title = `${compound.name} — PurePep Labs`;
   return {
     title,
@@ -55,7 +55,7 @@ function monographParagraphs(c: Compound): string[] {
       `Lyophilised vials are stable at −20 °C in their sealed amber container. In bacteriostatic water, HPLC-verified purity holds for approximately four weeks under refrigeration; single-thaw only.`,
     ],
     metabolic: [
-      `${c.blurb} ${c.name} belongs to the ${c.family.toLowerCase()} class and is prepared at a ${c.dose} fill per vial for laboratory titration work.`,
+      `${c.blurb} ${c.name} belongs to the ${c.family.toLowerCase()} class and is prepared at a ${defaultVariant(c).dose} fill per vial for laboratory titration work.`,
       `Material is synthesised on Rink-amide resin, cleaved with a standard TFA/TIPS/water cocktail, and purified on a C18 column to ≥ ${c.purity}%. Mass confirmation (ESI-TOF) and residual-solvent GC accompany every lot. Third-party counter-assay is run on a blind aliquot before release.`,
       `Long-chain GHRH and mitochondrial-derived peptides are moisture-sensitive; keep frozen at −20 °C, thaw once, and protect from repeated freeze-thaw cycles.`,
     ],
@@ -65,7 +65,7 @@ function monographParagraphs(c: Compound): string[] {
       `Lyophilised material is stable frozen at −20 °C. In aqueous solution, HPLC purity holds refrigerated for roughly two weeks; single-thaw only, no repeated freeze-thaw cycles.`,
     ],
     senescence: [
-      `${c.blurb} ${c.name} is supplied as a lyophilised solid at a ${c.dose} fill, sealed in amber borosilicate with an argon headspace.`,
+      `${c.blurb} ${c.name} is supplied as a lyophilised solid at a ${defaultVariant(c).dose} fill, sealed in amber borosilicate with an argon headspace.`,
       `Our Six-Step protocol applies identically to tripeptides and tetrapeptides: SPPS synthesis, HPLC purification to ≥ ${c.purity}%, and ESI-TOF mass confirmation. Copper complexes additionally pass a UV-vis coordination check. Every lot ships with a CoA signed by a third-party analytical lab.`,
       `Sealed vials hold indefinitely at −20 °C. Short peptides are robust as dry solids; in aqueous solution, HPLC purity remains within spec for approximately four weeks under refrigeration.`,
     ],
@@ -176,98 +176,7 @@ export default async function ProductPage({
               ))}
             </div>
 
-            {/* Data list */}
-            <dl
-              className="grid grid-cols-1 border-t border-hairline sm:grid-cols-2"
-              style={{
-                marginTop: "clamp(2.5rem, 4vw, 3.5rem)",
-                paddingTop: "clamp(1.25rem, 2vw, 1.75rem)",
-                columnGap: "clamp(1rem, 2vw, 2rem)",
-                rowGap: "clamp(1rem, 1.5vw, 1.25rem)",
-              }}
-            >
-              {[
-                {
-                  k: "Sequence",
-                  v: (
-                    <span className="break-all font-mono text-foreground">
-                      {compound.sequence}
-                    </span>
-                  ),
-                },
-                {
-                  k: "Molecular weight",
-                  v: (
-                    <span className="font-mono text-foreground">
-                      {compound.molecularWeight} g/mol
-                    </span>
-                  ),
-                },
-                {
-                  k: "Purity (HPLC-MS)",
-                  v: (
-                    <span className="font-mono text-brand">
-                      {compound.purity}%
-                    </span>
-                  ),
-                },
-                {
-                  k: "Dose · fill",
-                  v: (
-                    <span className="font-mono text-foreground">
-                      {compound.dose}
-                    </span>
-                  ),
-                },
-                {
-                  k: "Lot number",
-                  v: (
-                    <span className="font-mono text-foreground">
-                      {compound.lot}
-                    </span>
-                  ),
-                },
-                {
-                  k: "CoA date",
-                  v: (
-                    <span className="font-mono text-foreground">
-                      {compound.coaDate}
-                    </span>
-                  ),
-                },
-                {
-                  k: "Storage",
-                  v: (
-                    <span className="font-mono text-foreground">
-                      −20 °C · thaw once
-                    </span>
-                  ),
-                },
-                {
-                  k: "Shipping",
-                  v: (
-                    <span className="font-mono text-foreground">
-                      Cold-chain, 1-day overnight
-                    </span>
-                  ),
-                },
-              ].map((row) => (
-                <div key={row.k}>
-                  <dt
-                    className="font-mono tracking-[0.22em] uppercase text-muted-foreground"
-                    style={{ fontSize: "clamp(9.5px, 0.25vw + 8.5px, 10.5px)" }}
-                  >
-                    {row.k}
-                  </dt>
-                  <dd
-                    className="mt-1.5"
-                    style={{ fontSize: "clamp(11px, 0.3vw + 10px, 13px)" }}
-                  >
-                    {row.v}
-                  </dd>
-                </div>
-              ))}
-            </dl>
+            <ProductSpecsList compound={compound} />
 
             {/* Doc links */}
             <div
@@ -306,109 +215,9 @@ export default async function ProductPage({
             </div>
           </div>
 
-          {/* RIGHT — vial + specs + buy */}
+          {/* RIGHT — vial + specs + buy (variant-aware client island) */}
           <div className="lg:col-span-5">
-            <div
-              className="lg:sticky"
-              style={{
-                top: "clamp(5rem, 8vw, 7rem)",
-                display: "flex",
-                flexDirection: "column",
-                gap: "clamp(1.25rem, 2vw, 1.75rem)",
-              }}
-            >
-              <CompoundVial compound={compound} />
-
-              {/* Data sheet card */}
-              <div
-                className="border border-hairline bg-surface/40"
-                style={{ padding: "clamp(1.1rem, 1.6vw, 1.5rem)" }}
-              >
-                <div
-                  className="font-mono tracking-[0.25em] uppercase text-muted-foreground"
-                  style={{ fontSize: "clamp(9.5px, 0.25vw + 8.5px, 10.5px)" }}
-                >
-                  Specifications
-                </div>
-                <dl
-                  className="grid grid-cols-1 font-mono"
-                  style={{
-                    marginTop: "clamp(0.85rem, 1.2vw, 1rem)",
-                    rowGap: "clamp(0.5rem, 0.8vw, 0.7rem)",
-                    fontSize: "clamp(10.5px, 0.3vw + 9.5px, 12px)",
-                  }}
-                >
-                  {[
-                    { k: "Lot", v: compound.lot },
-                    { k: "Dose", v: compound.dose },
-                    {
-                      k: "In stock",
-                      v: `${compound.inStock} vials`,
-                    },
-                    { k: "Dispatch", v: "Within 24h" },
-                    { k: "Storage", v: "−20 °C · thaw once" },
-                  ].map((row) => (
-                    <div
-                      key={row.k}
-                      className="flex items-baseline justify-between gap-4 border-b border-hairline pb-1.5 last:border-0 last:pb-0"
-                    >
-                      <dt className="uppercase tracking-[0.22em] text-muted-foreground">
-                        {row.k}
-                      </dt>
-                      <dd className="text-foreground">{row.v}</dd>
-                    </div>
-                  ))}
-                </dl>
-              </div>
-
-              {/* Buy panel */}
-              <div
-                className="border border-hairline bg-background"
-                style={{ padding: "clamp(1.1rem, 1.8vw, 1.75rem)" }}
-              >
-                <div
-                  className="flex items-baseline justify-between"
-                  style={{ gap: "clamp(0.75rem, 1.2vw, 1rem)" }}
-                >
-                  <div
-                    className="font-mono tracking-[0.25em] uppercase text-muted-foreground"
-                    style={{
-                      fontSize: "clamp(9.5px, 0.25vw + 8.5px, 10.5px)",
-                    }}
-                  >
-                    Price
-                  </div>
-                  <div
-                    className="flex items-baseline gap-1 font-display leading-none tracking-tight text-foreground"
-                    style={{ fontSize: "clamp(2.5rem, 5vw, 4rem)" }}
-                  >
-                    <span
-                      className="font-mono tracking-[0.25em] uppercase text-muted-foreground"
-                      style={{
-                        fontSize: "clamp(10px, 0.25vw + 9px, 11px)",
-                      }}
-                    >
-                      USD
-                    </span>
-                    <span>${compound.price}</span>
-                  </div>
-                </div>
-
-                <div style={{ marginTop: "clamp(1.1rem, 1.5vw, 1.4rem)" }}>
-                  <BuyButton compound={compound} />
-                </div>
-
-                <p
-                  className="font-mono tracking-[0.22em] uppercase text-muted-foreground"
-                  style={{
-                    marginTop: "clamp(0.85rem, 1.2vw, 1rem)",
-                    fontSize: "clamp(9px, 0.25vw + 8px, 10.5px)",
-                  }}
-                >
-                  Ships in 1–2 business days
-                </p>
-              </div>
-            </div>
+            <ProductDetailSidebar compound={compound} />
           </div>
         </div>
       </section>

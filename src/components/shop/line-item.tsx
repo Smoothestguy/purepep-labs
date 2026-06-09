@@ -45,7 +45,7 @@ export function LineItem({ item }: Props) {
         <button
           type="button"
           aria-label={`Decrease ${item.name} quantity`}
-          onClick={() => updateQuantity(item.slug, item.quantity - 1)}
+          onClick={() => updateQuantity(item.key, item.quantity - 1)}
           className="inline-flex size-9 items-center justify-center text-foreground transition-colors hover:bg-surface/60"
         >
           −
@@ -59,7 +59,7 @@ export function LineItem({ item }: Props) {
         <button
           type="button"
           aria-label={`Increase ${item.name} quantity`}
-          onClick={() => updateQuantity(item.slug, item.quantity + 1)}
+          onClick={() => updateQuantity(item.key, item.quantity + 1)}
           className="inline-flex size-9 items-center justify-center text-foreground transition-colors hover:bg-surface/60"
         >
           +
@@ -77,7 +77,7 @@ export function LineItem({ item }: Props) {
       {/* Remove */}
       <button
         type="button"
-        onClick={() => removeItem(item.slug)}
+        onClick={() => removeItem(item.key)}
         className="col-start-2 row-start-1 justify-self-end whitespace-nowrap font-mono tracking-[0.22em] uppercase text-muted-foreground transition-colors hover:text-foreground sm:col-start-4 sm:row-start-1"
         style={{ fontSize: "clamp(9.5px, 0.25vw + 8.5px, 10.5px)" }}
       >

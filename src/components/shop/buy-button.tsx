@@ -3,13 +3,14 @@
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useCartStore } from "@/lib/cart/store";
-import type { Compound } from "@/lib/compounds";
+import type { Compound, Variant } from "@/lib/compounds";
 
 type Props = {
   compound: Compound;
+  variant: Variant;
 };
 
-export function BuyButton({ compound }: Props) {
+export function BuyButton({ compound, variant }: Props) {
   const router = useRouter();
   const addItem = useCartStore((s) => s.addItem);
 
@@ -17,9 +18,9 @@ export function BuyButton({ compound }: Props) {
     <button
       type="button"
       onClick={() => {
-        addItem(compound);
+        addItem(compound, variant);
         toast.success("Added to cart", {
-          description: `${compound.name} · $${compound.price}`,
+          description: `${compound.name} · ${variant.dose} · $${variant.price}`,
           action: {
             label: "View cart",
             onClick: () => router.push("/cart"),
