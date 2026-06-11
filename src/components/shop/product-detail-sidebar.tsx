@@ -1,18 +1,27 @@
 "use client";
 
-import type { Compound } from "@/lib/compounds";
+import type { Compound, Variant } from "@/lib/compounds";
 import { BuyButton } from "./buy-button";
 import { CompoundVial } from "./compound-vial";
 import { VariantPicker } from "./variant-picker";
 import { useSelectedVariant } from "./use-selected-variant";
 
-type Props = {
+/**
+ * Reads the URL-selected variant. This is the only piece that touches
+ * `useSearchParams`, so the page wraps it in a `<Suspense>` boundary and
+ * renders `<ProductSidebarView>` (default variant) as the prerendered fallback.
+ */
+export function ProductDetailSidebar({ compound }: { compound: Compound }) {
+  const variant = useSelectedVariant(compound);
+  return <ProductSidebarView compound={compound} variant={variant} />;
+}
+
+type ViewProps = {
   compound: Compound;
+  variant: Variant;
 };
 
-export function ProductDetailSidebar({ compound }: Props) {
-  const variant = useSelectedVariant(compound);
-
+export function ProductSidebarView({ compound, variant }: ViewProps) {
   return (
     <div
       className="lg:sticky"
@@ -25,7 +34,7 @@ export function ProductDetailSidebar({ compound }: Props) {
     >
       <CompoundVial compound={compound} variant={variant} />
 
-      <VariantPicker compound={compound} />
+      <VariantPicker compound={compound} selectedDose={variant.dose} />
 
       {/* Specifications card */}
       <div

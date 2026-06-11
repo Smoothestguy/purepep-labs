@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -8,8 +9,14 @@ import {
   type Compound,
 } from "@/lib/compounds";
 import { ProductCard } from "@/components/shop/product-card";
-import { ProductDetailSidebar } from "@/components/shop/product-detail-sidebar";
-import { ProductSpecsList } from "@/components/shop/product-specs-list";
+import {
+  ProductDetailSidebar,
+  ProductSidebarView,
+} from "@/components/shop/product-detail-sidebar";
+import {
+  ProductSpecsList,
+  ProductSpecsListView,
+} from "@/components/shop/product-specs-list";
 import { defaultVariant } from "@/lib/compounds";
 
 type Params = Promise<{ slug: string }>;
@@ -176,7 +183,16 @@ export default async function ProductPage({
               ))}
             </div>
 
-            <ProductSpecsList compound={compound} />
+            <Suspense
+              fallback={
+                <ProductSpecsListView
+                  compound={compound}
+                  variant={defaultVariant(compound)}
+                />
+              }
+            >
+              <ProductSpecsList compound={compound} />
+            </Suspense>
 
             {/* Doc links */}
             <div
@@ -217,7 +233,16 @@ export default async function ProductPage({
 
           {/* RIGHT — vial + specs + buy (variant-aware client island) */}
           <div className="lg:col-span-5">
-            <ProductDetailSidebar compound={compound} />
+            <Suspense
+              fallback={
+                <ProductSidebarView
+                  compound={compound}
+                  variant={defaultVariant(compound)}
+                />
+              }
+            >
+              <ProductDetailSidebar compound={compound} />
+            </Suspense>
           </div>
         </div>
       </section>
