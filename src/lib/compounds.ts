@@ -450,6 +450,8 @@ const COMPOUND_PHOTO: Record<string, string> = {
   glutathione: "glutathione.png",
   "pt-141": "pt-141.png",
   "melanotan-2": "melanotan-2.png",
+  "bac-water": "bac-water.png",
+  "igf-1-lr3": "igf-1-lr3.png",
 };
 
 export function compoundHasPhoto(c: Compound): boolean {
