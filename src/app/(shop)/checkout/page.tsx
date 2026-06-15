@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { CheckoutForm } from "@/components/shop/checkout-form";
 
 export const metadata: Metadata = {
-  title: "Checkout — PurePep Labs",
+  title: "Checkout — The Pure Pep",
   description: "Finalise your order. Cold-chain dispatch within one business day.",
 };
 

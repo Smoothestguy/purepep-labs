@@ -130,14 +130,14 @@ export function SiteFooter() {
             fontSize: "clamp(9.5px, 0.25vw + 8.5px, 10.5px)",
           }}
         >
-          <div>© {year} PurePep Labs, LLC · Houston, TX</div>
+          <div>© {year} The Pure Pep, LLC · Houston, TX</div>
           <div>For research use only · Not for human consumption</div>
         </div>
 
         <div className="mt-6 flex justify-center">
           <Image
             src="/images/PurePep_Label.png"
-            alt="PurePep Labs"
+            alt="The Pure Pep"
             width={1320}
             height={1348}
             className="h-auto w-[clamp(8rem,18vw,14rem)]"

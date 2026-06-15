@@ -5,7 +5,7 @@ import { ImageResponse } from "next/og";
 // File-convention config
 export const runtime = "nodejs";
 export const alt =
-  "PurePep Labs — Research-grade peptides, documented to the milligram.";
+  "The Pure Pep — Research-grade peptides, documented to the milligram.";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -99,7 +99,7 @@ export default async function OpengraphImage() {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={logoSrc}
-            alt="PurePep Labs"
+            alt="The Pure Pep"
             width={120}
             height={123}
             style={{ display: "flex" }}
@@ -110,12 +110,12 @@ export default async function OpengraphImage() {
         {/* Spacer */}
         <div style={{ flex: 1, display: "flex" }} />
 
-        {/* Wordmark */}
+        {/* Wordmark — The Pure Pep */}
         <div
           style={{
             display: "flex",
             alignItems: "baseline",
-            gap: 12,
+            gap: 24,
             lineHeight: 0.85,
             letterSpacing: "-0.04em",
             zIndex: 1,
@@ -124,34 +124,34 @@ export default async function OpengraphImage() {
           <div
             style={{
               display: "flex",
-              fontSize: 168,
-              fontWeight: 700,
-              color: INK,
-            }}
-          >
-            PUREPEP
-          </div>
-          <div
-            style={{
-              display: "flex",
-              fontSize: 168,
+              fontSize: 64,
               fontWeight: 300,
               fontStyle: "italic",
-              color: BRAND,
-              opacity: 0.9,
+              color: MUTED,
+              letterSpacing: "0.04em",
             }}
           >
-            ·
+            The
           </div>
           <div
             style={{
               display: "flex",
-              fontSize: 168,
+              fontSize: 150,
               fontWeight: 700,
               color: INK,
             }}
           >
-            LABS
+            PURE
+          </div>
+          <div
+            style={{
+              display: "flex",
+              fontSize: 150,
+              fontWeight: 700,
+              color: BRAND,
+            }}
+          >
+            PEP
           </div>
         </div>
 

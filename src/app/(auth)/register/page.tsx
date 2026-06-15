@@ -3,9 +3,9 @@ import Link from "next/link";
 import { RegisterForm } from "@/components/shared/register-form";
 
 export const metadata: Metadata = {
-  title: "Create account — PurePep Labs",
+  title: "Create account — The Pure Pep",
   description:
-    "Open a research-use account for access to the PurePep Labs catalog.",
+    "Open a research-use account for access to the The Pure Pep catalog.",
 };
 
 export default function RegisterPage() {

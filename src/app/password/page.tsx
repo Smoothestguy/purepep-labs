@@ -3,7 +3,7 @@ import Image from "next/image";
 import { joinWaitlist, unlock } from "./actions";
 
 export const metadata: Metadata = {
-  title: "PurePep Labs — Site under maintenance",
+  title: "The Pure Pep — Site under maintenance",
   description: "Site temporarily offline. Join the waitlist for launch.",
   robots: { index: false, follow: false },
 };
@@ -69,7 +69,7 @@ export default async function PasswordPage({
         {/* PurePep label mark */}
         <Image
           src="/images/PurePep_Label.png"
-          alt="PurePep Labs"
+          alt="The Pure Pep"
           width={1320}
           height={1348}
           priority
@@ -107,7 +107,7 @@ export default async function PasswordPage({
             lineHeight: 1.55,
           }}
         >
-          PurePep Labs is briefly offline while we finish the catalog and
+          The Pure Pep is briefly offline while we finish the catalog and
           documentation system. Drop your email and we&rsquo;ll let you know
           the moment it&rsquo;s live.
         </p>
@@ -291,7 +291,7 @@ export default async function PasswordPage({
             letterSpacing: "0.3em",
           }}
         >
-          PurePep Labs · Houston, TX
+          The Pure Pep · Houston, TX
         </div>
       </div>
     </main>

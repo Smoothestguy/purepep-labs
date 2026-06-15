@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Order received — PurePep Labs",
-  description: "Receipt and dispatch confirmation for your PurePep order.",
+  title: "Order received — The Pure Pep",
+  description: "Receipt and dispatch confirmation for your order from The Pure Pep.",
 };
 
 type SearchParams = Promise<{

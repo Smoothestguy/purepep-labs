@@ -4,8 +4,8 @@ import { Suspense } from "react";
 import { LoginForm } from "@/components/shared/login-form";
 
 export const metadata: Metadata = {
-  title: "Sign in — PurePep Labs",
-  description: "Research-only access to the PurePep Labs catalog.",
+  title: "Sign in — The Pure Pep",
+  description: "Research-only access to the The Pure Pep catalog.",
 };
 
 export default function LoginPage() {

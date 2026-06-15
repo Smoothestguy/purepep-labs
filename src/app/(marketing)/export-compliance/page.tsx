@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Export compliance — PurePep Labs",
+  title: "Export compliance — The Pure Pep",
   description:
-    "U.S. export-control and sanctions program governing international shipments from PurePep Labs, LLC. Template — review with counsel before launch.",
+    "U.S. export-control and sanctions program governing international shipments from The Pure Pep, LLC. Template — review with counsel before launch.",
   alternates: { canonical: "/export-compliance" },
 };
 
@@ -59,7 +59,7 @@ export default function ExportCompliancePage() {
                 eyebrow="01 · Governing authorities"
                 title="EAR, BIS, and OFAC."
                 paragraphs={[
-                  "All international shipments from PurePep Labs are subject to the United States Export Administration Regulations (EAR) administered by the Bureau of Industry and Security (BIS), and to the economic sanctions programs administered by the Department of the Treasury's Office of Foreign Assets Control (OFAC). We classify each catalog item under its appropriate Export Control Classification Number (ECCN) prior to dispatch.",
+                  "All international shipments from The Pure Pep are subject to the United States Export Administration Regulations (EAR) administered by the Bureau of Industry and Security (BIS), and to the economic sanctions programs administered by the Department of the Treasury's Office of Foreign Assets Control (OFAC). We classify each catalog item under its appropriate Export Control Classification Number (ECCN) prior to dispatch.",
                 ]}
               />
 
@@ -92,7 +92,7 @@ export default function ExportCompliancePage() {
                 eyebrow="05 · End-use restrictions"
                 title="Weapons, WMD, dual-use diversion."
                 paragraphs={[
-                  "Compounds sold by PurePep Labs may not be used in the design, development, production, or use of chemical, biological, or nuclear weapons, missiles or unmanned aerial vehicles, or in support of any military end-use in a destination subject to an applicable end-use restriction.",
+                  "Compounds sold by The Pure Pep may not be used in the design, development, production, or use of chemical, biological, or nuclear weapons, missiles or unmanned aerial vehicles, or in support of any military end-use in a destination subject to an applicable end-use restriction.",
                 ]}
               />
 
@@ -116,7 +116,7 @@ export default function ExportCompliancePage() {
                 eyebrow="08 · Contact"
                 title="Compliance Officer."
                 paragraphs={[
-                  "Inquiries regarding export classification, licensing, or the screening process may be directed to: Compliance Officer, PurePep Labs, LLC, [street address], Houston, Texas [ZIP], United States, or compliance@[placeholder-domain].",
+                  "Inquiries regarding export classification, licensing, or the screening process may be directed to: Compliance Officer, The Pure Pep, LLC, [street address], Houston, Texas [ZIP], United States, or compliance@[placeholder-domain].",
                 ]}
               />
             </div>

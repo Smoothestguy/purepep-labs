@@ -12,7 +12,7 @@ function client(): Resend | null {
   return cached;
 }
 
-const FROM = process.env.EMAIL_FROM ?? "PurePep Labs <support@purepep-labs.com>";
+const FROM = process.env.EMAIL_FROM ?? "The Pure Pep <support@thepurepep.com>";
 
 // Logo hosted at /images/PurePep_Label_email.png with email-friendly cache
 // headers configured in next.config.ts. Vercel's default `must-revalidate`
@@ -31,7 +31,7 @@ export async function sendWaitlistConfirmation(to: string): Promise<void> {
   const { error } = await resend.emails.send({
     from: FROM,
     to,
-    subject: "You're on the PurePep Labs list",
+    subject: "You're on the The Pure Pep list",
     html: waitlistConfirmationHtml(),
     text: waitlistConfirmationText(),
   });
@@ -49,12 +49,12 @@ function waitlistConfirmationHtml(): string {
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="dark">
     <meta name="supported-color-schemes" content="dark">
-    <title>You're on the PurePep Labs list</title>
+    <title>You're on the The Pure Pep list</title>
   </head>
   <body style="margin:0;padding:0;background:#0a0d12;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#f4f6f9;">
     <!-- Preheader (hidden in body, shows as snippet in inbox preview) -->
     <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;visibility:hidden;">
-      You're on the PurePep Labs waitlist. We'll notify you the moment the catalog opens.
+      You're on the The Pure Pep waitlist. We'll notify you the moment the catalog opens.
     </div>
 
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#0a0d12;">
@@ -67,7 +67,7 @@ function waitlistConfirmationHtml(): string {
               <td align="center" style="padding:0 0 32px 0;">
                 <img
                   src="${LOGO_URL}"
-                  alt="PurePep Labs"
+                  alt="The Pure Pep"
                   width="80"
                   height="82"
                   style="display:block;width:80px;height:auto;border:0;outline:none;text-decoration:none;"
@@ -97,7 +97,7 @@ function waitlistConfirmationHtml(): string {
 
                       <!-- Body -->
                       <p style="margin:0 0 18px 0;font-size:15px;line-height:1.6;color:#c4cad3;">
-                        Thanks for signing up. PurePep Labs is briefly offline
+                        Thanks for signing up. The Pure Pep is briefly offline
                         while we finish the catalog and documentation system.
                         We&rsquo;ll email you the moment it&rsquo;s live so you
                         can review compounds, Certificates of Analysis, and
@@ -117,7 +117,7 @@ function waitlistConfirmationHtml(): string {
             <tr>
               <td style="padding:24px 8px 0 8px;">
                 <p style="margin:0;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:10px;letter-spacing:0.28em;text-transform:uppercase;color:#7d8593;line-height:1.7;text-align:center;">
-                  PurePep Labs &middot; Houston, TX<br>
+                  The Pure Pep &middot; Houston, TX<br>
                   <span style="color:#5e6571;">For laboratory research use only &middot; Not for human consumption</span>
                 </p>
               </td>
@@ -134,11 +134,11 @@ function waitlistConfirmationHtml(): string {
 function waitlistConfirmationText(): string {
   return `You're on the list.
 
-Thanks for signing up. PurePep Labs is briefly offline while we finish the catalog and documentation system. We'll email you the moment it's live so you can review compounds, Certificates of Analysis, and stability data.
+Thanks for signing up. The Pure Pep is briefly offline while we finish the catalog and documentation system. We'll email you the moment it's live so you can review compounds, Certificates of Analysis, and stability data.
 
 No further action is required from you.
 
 —
-PurePep Labs · Houston, TX
+The Pure Pep · Houston, TX
 For laboratory research use only · Not for human consumption`;
 }

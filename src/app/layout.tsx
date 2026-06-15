@@ -23,7 +23,7 @@ const fraunces = Fraunces({
 });
 
 const SITE_TITLE =
-  "PurePep Labs — Research-grade peptides, documented to the milligram";
+  "The Pure Pep — Research-grade peptides, documented to the milligram";
 const SITE_DESCRIPTION =
   "Third-party tested, lot-traceable peptides for the serious investigator. Every vial shipped with a Certificate of Analysis.";
 
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://thepurepep.com"),
   title: SITE_TITLE,
   description: SITE_DESCRIPTION,
-  applicationName: "PurePep Labs",
+  applicationName: "The Pure Pep",
   alternates: { canonical: "/" },
   robots: { index: true, follow: true },
   openGraph: {
@@ -39,13 +39,13 @@ export const metadata: Metadata = {
     description: SITE_DESCRIPTION,
     type: "website",
     url: "/",
-    siteName: "PurePep Labs",
+    siteName: "The Pure Pep",
     images: [
       {
         url: "/opengraph-image",
         width: 1200,
         height: 630,
-        alt: "PurePep Labs — Research-grade peptides, documented to the milligram.",
+        alt: "The Pure Pep — Research-grade peptides, documented to the milligram.",
       },
     ],
   },

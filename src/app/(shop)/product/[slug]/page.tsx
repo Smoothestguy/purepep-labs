@@ -34,11 +34,11 @@ export async function generateMetadata({
   const compound = compoundBySlug(slug);
   if (!compound) {
     return {
-      title: "Not found — PurePep Labs",
+      title: "Not found — The Pure Pep",
     };
   }
   const description = `${compound.blurb} · ${compound.molecularWeight} g/mol · ${compound.purity}% HPLC-MS purity · ${defaultVariant(compound).dose} fill. For laboratory research use only.`;
-  const title = `${compound.name} — PurePep Labs`;
+  const title = `${compound.name} — The Pure Pep`;
   return {
     title,
     description,
