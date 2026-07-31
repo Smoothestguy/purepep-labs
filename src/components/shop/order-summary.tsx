@@ -2,8 +2,11 @@
 
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { SHIPPING_FLAT } from "@/lib/pricing";
 
-export const SHIPPING_FLAT = 18;
+// Re-exported for existing importers; the value itself lives in lib/pricing
+// so the server's authoritative total and this display can never drift.
+export { SHIPPING_FLAT };
 
 type Props = {
   subtotal: number;

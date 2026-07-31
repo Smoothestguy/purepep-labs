@@ -131,6 +131,163 @@ function waitlistConfirmationHtml(): string {
 </html>`;
 }
 
+// ── Order confirmation ───────────────────────────────────────────────
+
+type OrderEmailLine = {
+  name: string;
+  dose: string;
+  quantity: number;
+  line_total_cents: number;
+};
+
+export type OrderConfirmationInput = {
+  to: string;
+  orderRef: string;
+  items: OrderEmailLine[];
+  subtotalCents: number;
+  shippingCents: number;
+  totalCents: number;
+};
+
+function money(cents: number): string {
+  return `$${(cents / 100).toFixed(2)}`;
+}
+
+/**
+ * Sent after a successful charge. Deliberately best-effort: the caller
+ * swallows failures so a mail outage can't turn a paid order into an
+ * error page for the customer.
+ */
+export async function sendOrderConfirmation(
+  input: OrderConfirmationInput,
+): Promise<void> {
+  const resend = client();
+  if (!resend) {
+    console.warn("[email] RESEND_API_KEY missing — skipping order confirmation");
+    return;
+  }
+
+  const { error } = await resend.emails.send({
+    from: FROM,
+    to: input.to,
+    subject: `Order ${input.orderRef} confirmed — The Pure Pep`,
+    html: orderConfirmationHtml(input),
+    text: orderConfirmationText(input),
+  });
+
+  if (error) {
+    console.warn("[email] resend error:", error.message);
+  }
+}
+
+function orderConfirmationHtml(o: OrderConfirmationInput): string {
+  const rows = o.items
+    .map(
+      (i) => `
+              <tr>
+                <td style="padding:8px 0;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;color:#f4f6f9;border-bottom:1px solid rgba(255,255,255,0.08);">
+                  ${i.name} &middot; ${i.dose}${i.quantity > 1 ? ` &times; ${i.quantity}` : ""}
+                </td>
+                <td align="right" style="padding:8px 0;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;color:#f4f6f9;border-bottom:1px solid rgba(255,255,255,0.08);">
+                  ${money(i.line_total_cents)}
+                </td>
+              </tr>`,
+    )
+    .join("");
+
+  return `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="dark">
+  </head>
+  <body style="margin:0;padding:0;background:#0a0d12;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#0a0d12;padding:32px 16px;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;">
+
+            <tr>
+              <td align="center" style="padding-bottom:24px;">
+                <img src="${LOGO_URL}" alt="The Pure Pep" width="90" style="display:block;border:0;">
+              </td>
+            </tr>
+
+            <tr>
+              <td style="padding:0 8px 8px 8px;">
+                <p style="margin:0;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:10px;letter-spacing:0.3em;text-transform:uppercase;color:#4dd2e8;">
+                  Order ${o.orderRef}
+                </p>
+                <h1 style="margin:12px 0 0 0;font-family:Georgia,'Times New Roman',serif;font-size:28px;line-height:1.2;color:#f4f6f9;font-weight:normal;">
+                  Order confirmed
+                </h1>
+                <p style="margin:12px 0 0 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;line-height:1.6;color:#98a0ad;">
+                  Thanks — your payment went through. We dispatch cold-chain within one business day and email a signed Certificate of Analysis with every lot.
+                </p>
+              </td>
+            </tr>
+
+            <tr>
+              <td style="padding:24px 8px 0 8px;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                  ${rows}
+                  <tr>
+                    <td style="padding:12px 0 0 0;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11px;color:#98a0ad;">Subtotal</td>
+                    <td align="right" style="padding:12px 0 0 0;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11px;color:#98a0ad;">${money(o.subtotalCents)}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding:4px 0;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11px;color:#98a0ad;">Shipping</td>
+                    <td align="right" style="padding:4px 0;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11px;color:#98a0ad;">${money(o.shippingCents)}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding:8px 0 0 0;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;color:#f4f6f9;letter-spacing:0.1em;">TOTAL</td>
+                    <td align="right" style="padding:8px 0 0 0;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;color:#4dd2e8;">${money(o.totalCents)}</td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <tr>
+              <td style="padding:24px 8px 0 8px;">
+                <p style="margin:0;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:10px;letter-spacing:0.28em;text-transform:uppercase;color:#7d8593;line-height:1.7;text-align:center;">
+                  The Pure Pep &middot; Houston, TX<br>
+                  <span style="color:#5e6571;">For laboratory research use only &middot; Not for human consumption</span>
+                </p>
+              </td>
+            </tr>
+
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`;
+}
+
+function orderConfirmationText(o: OrderConfirmationInput): string {
+  const lines = o.items
+    .map(
+      (i) =>
+        `- ${i.name} · ${i.dose}${i.quantity > 1 ? ` x${i.quantity}` : ""}  ${money(i.line_total_cents)}`,
+    )
+    .join("\n");
+
+  return `Order confirmed — ${o.orderRef}
+
+Thanks — your payment went through. We dispatch cold-chain within one business day and email a signed Certificate of Analysis with every lot.
+
+${lines}
+
+Subtotal: ${money(o.subtotalCents)}
+Shipping: ${money(o.shippingCents)}
+Total:    ${money(o.totalCents)}
+
+—
+The Pure Pep · Houston, TX
+For laboratory research use only · Not for human consumption`;
+}
+
 function waitlistConfirmationText(): string {
   return `You're on the list.
 

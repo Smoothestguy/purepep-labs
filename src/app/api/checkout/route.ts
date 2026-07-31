@@ -1,24 +1,28 @@
 import type { NextRequest } from "next/server";
-import type {
-  CheckoutRequest,
-  CheckoutResponse,
-  CheckoutShipping,
-} from "@/lib/nmi/types";
+import type { CheckoutResponse, CheckoutShipping } from "@/lib/nmi/types";
+import { chargeCard, isGatewayConfigured } from "@/lib/nmi/gateway";
+import { priceOrder, type RequestedLine } from "@/lib/pricing";
+import {
+  createPendingOrder,
+  generateOrderRef,
+  markOrderFailed,
+  markOrderPaid,
+} from "@/lib/orders";
+import { createClient } from "@/lib/supabase/server";
+import { sendOrderConfirmation } from "@/lib/email";
 
 /**
  * POST /api/checkout
  *
- * Phase 2 is a structural stub. We validate the payload, log an order
- * record, and return a mock approval. No real gateway call is made.
+ * Order of operations matters here:
+ *   1. Validate the payload shape.
+ *   2. Re-price the cart from the catalog — the browser's prices and total
+ *      are ignored entirely (see lib/pricing).
+ *   3. Write a 'pending' order, so a row exists even if step 4 dies.
+ *   4. Charge the CollectJS token.
+ *   5. Mark paid/failed, then email the customer.
  *
- * TODO(Phase 3): real NMI transact.php POST.
- *   - Read `NMI_SECURITY_KEY` and form-encode a request against
- *     https://secure.networkmerchants.com/api/transact.php with:
- *       type=sale, payment_token=<token>, amount=<total>, + shipping/email
- *   - Parse the x-www-form-urlencoded response. `response=1` is approval.
- *   - Persist the order row (Supabase) with the gateway transaction id.
- *   - Send the confirmation email (Resend / Postmark) with the order id.
- *   - Never log raw card data — we only ever hold the one-time token.
+ * Card data never reaches this handler — only the one-time token.
  */
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -41,86 +45,200 @@ function validateShipping(s: unknown): s is CheckoutShipping {
   );
 }
 
-function validatePayload(body: unknown): body is CheckoutRequest {
-  if (typeof body !== "object" || body === null) return false;
+type ParsedBody = {
+  token: string;
+  email: string;
+  shipping: CheckoutShipping;
+  lines: RequestedLine[];
+};
+
+function parseBody(body: unknown): ParsedBody | null {
+  if (typeof body !== "object" || body === null) return null;
   const r = body as Record<string, unknown>;
-  if (!isString(r.token)) return false;
-  if (!isString(r.email) || !EMAIL_RE.test(r.email.trim())) return false;
-  if (!validateShipping(r.shipping)) return false;
-  if (!Array.isArray(r.items) || r.items.length === 0) return false;
-  if (typeof r.total !== "number" || r.total <= 0) return false;
+
+  if (!isString(r.token)) return null;
+  if (!isString(r.email) || !EMAIL_RE.test(r.email.trim())) return null;
+  if (!validateShipping(r.shipping)) return null;
+  if (!Array.isArray(r.items) || r.items.length === 0) return null;
+
+  const lines: RequestedLine[] = [];
   for (const item of r.items) {
-    if (typeof item !== "object" || item === null) return false;
+    if (typeof item !== "object" || item === null) return null;
     const i = item as Record<string, unknown>;
-    if (!isString(i.slug) || !isString(i.name) || !isString(i.accession)) {
-      return false;
-    }
-    if (typeof i.price !== "number" || typeof i.quantity !== "number") {
-      return false;
-    }
+    // Note: any `price` the client sent is intentionally discarded.
+    if (!isString(i.slug) || !isString(i.dose)) return null;
+    if (typeof i.quantity !== "number") return null;
+    lines.push({ slug: i.slug, dose: i.dose, quantity: i.quantity });
   }
-  return true;
+
+  return {
+    token: r.token,
+    email: r.email.trim(),
+    shipping: r.shipping,
+    lines,
+  };
 }
 
-function generateOrderId(): string {
-  return `PP-${Date.now().toString(36).toUpperCase()}`;
+function fail(error: string, status: number): Response {
+  return Response.json({ ok: false, error } satisfies CheckoutResponse, {
+    status,
+  });
 }
 
-export async function POST(
-  request: NextRequest,
-): Promise<Response> {
-  let body: unknown;
+/**
+ * Mock approvals are a development affordance. Allowing them in production
+ * would mean customers receive "order confirmed" pages for money that was
+ * never taken — so they are off unless explicitly opted into.
+ */
+function mockAllowed(): boolean {
+  if (process.env.ALLOW_MOCK_CHECKOUT === "true") return true;
+  return process.env.NODE_ENV !== "production";
+}
+
+export async function POST(request: NextRequest): Promise<Response> {
+  let json: unknown;
   try {
-    body = await request.json();
+    json = await request.json();
   } catch {
-    return Response.json(
-      { ok: false, error: "Invalid JSON body." } satisfies CheckoutResponse,
-      { status: 400 },
+    return fail("Invalid JSON body.", 400);
+  }
+
+  const body = parseBody(json);
+  if (!body) {
+    return fail(
+      "Missing or invalid fields. Expected token, email, shipping, items.",
+      400,
     );
   }
 
-  if (!validatePayload(body)) {
+  // ── Authoritative pricing ────────────────────────────────────────────
+  const priced = priceOrder(body.lines);
+  if (!priced.ok) return fail(priced.error, 400);
+  const { items, subtotalCents, shippingCents, totalCents } = priced.order;
+
+  const gatewayReady = isGatewayConfigured();
+  if (!gatewayReady && !mockAllowed()) {
+    return fail(
+      "Card payments are not available yet. Please contact us to place this order.",
+      503,
+    );
+  }
+
+  // Attach the order to a signed-in user when there is one. Guest checkout
+  // still works — user_id is simply null.
+  let userId: string | null = null;
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    userId = user?.id ?? null;
+  } catch {
+    // Supabase not configured locally — proceed as a guest order.
+  }
+
+  const orderRef = generateOrderRef();
+
+  // ── Persist before charging ──────────────────────────────────────────
+  let persisted = true;
+  try {
+    await createPendingOrder({
+      orderRef,
+      userId,
+      email: body.email,
+      items,
+      shipping: body.shipping,
+      subtotalCents,
+      shippingCents,
+      totalCents,
+    });
+  } catch (err) {
+    persisted = false;
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("[checkout] could not persist order:", message);
+
+    // In production, taking money we cannot attribute to an order is worse
+    // than declining the sale.
+    if (process.env.NODE_ENV === "production") {
+      return fail(
+        "We could not record your order. No payment was taken. Please try again.",
+        503,
+      );
+    }
+  }
+
+  // ── Charge ───────────────────────────────────────────────────────────
+  if (!gatewayReady) {
+    console.warn(
+      `[checkout] ${orderRef}: gateway not configured — mock approval (no payment taken).`,
+    );
     return Response.json(
       {
-        ok: false,
-        error:
-          "Missing or invalid fields. Expected token, email, shipping, items, total.",
+        ok: true,
+        orderId: orderRef,
+        message:
+          "Mock approval — no payment was taken (gateway not configured).",
       } satisfies CheckoutResponse,
-      { status: 400 },
+      { status: 200 },
     );
   }
 
-  // Secret key is server-only. We don't use it in Phase 2 — just warn if
-  // it's missing so the operator knows the real gateway isn't configured.
-  const securityKey = process.env.NMI_SECURITY_KEY;
-  if (!securityKey) {
-    console.warn(
-      "[checkout] NMI_SECURITY_KEY is not set — proceeding with mock approval only.",
-    );
-  }
-
-  const orderId = generateOrderId();
-
-  // Log a structured record. The CollectJS token is opaque and one-time,
-  // so it is safe to log; we still never log PAN/CVV (we never have them).
-  console.log("[checkout] mock-approval", {
-    orderId,
+  const charge = await chargeCard({
+    token: body.token,
+    amountCents: totalCents,
     email: body.email,
-    itemCount: body.items.length,
-    total: body.total,
-    token: body.token === "MOCK" ? "MOCK" : "<redacted>",
-    shippingCity: body.shipping.city,
-    shippingState: body.shipping.state,
+    shipping: body.shipping,
+    orderRef,
   });
+
+  if (!charge.ok) {
+    if (persisted) {
+      await markOrderFailed(orderRef, charge.message, charge.raw);
+    }
+    console.warn(`[checkout] ${orderRef}: ${charge.kind} — ${charge.message}`);
+    // 402 for a genuine decline; 502 when the processor itself misbehaved.
+    return fail(charge.message, charge.kind === "declined" ? 402 : 502);
+  }
+
+  if (persisted) {
+    try {
+      await markOrderPaid(orderRef, {
+        transactionId: charge.transactionId,
+        authCode: charge.authCode,
+        raw: charge.raw,
+      });
+    } catch (err) {
+      // The customer's card was charged — never fail the response here.
+      console.error(
+        `[checkout] ${orderRef}: charged but not marked paid:`,
+        err instanceof Error ? err.message : err,
+      );
+    }
+  }
+
+  // Confirmation email is best-effort; a mail outage must not turn a
+  // successful payment into an error page.
+  try {
+    await sendOrderConfirmation({
+      to: body.email,
+      orderRef,
+      items,
+      subtotalCents,
+      shippingCents,
+      totalCents,
+    });
+  } catch (err) {
+    console.error(
+      `[checkout] ${orderRef}: confirmation email failed:`,
+      err instanceof Error ? err.message : err,
+    );
+  }
 
   return Response.json(
     {
       ok: true,
-      orderId,
-      message:
-        body.token === "MOCK"
-          ? "Mock approval — payment processing in demo mode (no gateway)."
-          : "Mock approval — NMI gateway not wired in Phase 2.",
+      orderId: orderRef,
+      message: "Payment approved.",
     } satisfies CheckoutResponse,
     { status: 200 },
   );
