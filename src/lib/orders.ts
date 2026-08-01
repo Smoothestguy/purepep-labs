@@ -3,6 +3,7 @@ import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { PricedLine } from "@/lib/pricing";
 import type { CheckoutShipping } from "@/lib/nmi/types";
+import type { PaymentMethod } from "@/lib/payment-methods";
 
 /**
  * Order persistence.
@@ -36,6 +37,10 @@ export type OrderRow = {
   gateway_txn_id: string | null;
   gateway_auth_code: string | null;
   failure_reason: string | null;
+  payment_method: PaymentMethod;
+  payment_reference: string | null;
+  marked_paid_by: string | null;
+  marked_paid_at: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -74,6 +79,7 @@ export type CreateOrderInput = {
   subtotalCents: number;
   shippingCents: number;
   totalCents: number;
+  paymentMethod: PaymentMethod;
 };
 
 /** Insert a 'pending' order. Throws if storage is unconfigured. */
@@ -95,7 +101,8 @@ export async function createPendingOrder(
       subtotal_cents: input.subtotalCents,
       shipping_cents: input.shippingCents,
       total_cents: input.totalCents,
-      gateway: "nmi",
+      payment_method: input.paymentMethod,
+      gateway: input.paymentMethod === "card" ? "nmi" : null,
     })
     .select()
     .single();
@@ -146,6 +153,44 @@ export async function markOrderFailed(
     // throw so we don't mask the original payment failure.
     console.error("[orders] could not mark order failed:", error.message);
   }
+}
+
+/**
+ * Reconcile a manual (bank transfer / crypto) order once funds arrive.
+ *
+ * Guarded on `status = 'pending'` so a double-click or a stale tab cannot
+ * re-mark an order that was already settled or cancelled — the update
+ * silently matches zero rows instead, and we report that back.
+ */
+export async function markOrderPaidManually(input: {
+  orderRef: string;
+  reference: string | null;
+  by: string;
+}): Promise<{ ok: boolean; reason?: string }> {
+  const supabase = createAdminClient();
+  if (!supabase) throw new OrdersUnavailableError();
+
+  const { data, error } = await supabase
+    .from("orders")
+    .update({
+      status: "paid",
+      payment_reference: input.reference,
+      marked_paid_by: input.by,
+      marked_paid_at: new Date().toISOString(),
+    })
+    .eq("order_ref", input.orderRef)
+    .eq("status", "pending")
+    .neq("payment_method", "card")
+    .select("order_ref");
+
+  if (error) return { ok: false, reason: error.message };
+  if (!data || data.length === 0) {
+    return {
+      ok: false,
+      reason: "Order was not pending — it may already have been marked paid.",
+    };
+  }
+  return { ok: true };
 }
 
 /** Admin dashboard listing, newest first. */

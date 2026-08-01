@@ -9,7 +9,14 @@ import {
   markOrderPaid,
 } from "@/lib/orders";
 import { createClient } from "@/lib/supabase/server";
-import { sendOrderConfirmation } from "@/lib/email";
+import { sendOrderConfirmation, sendPaymentInstructions } from "@/lib/email";
+import {
+  enabledMethods,
+  isManual,
+  isPaymentMethod,
+  type PaymentMethod,
+} from "@/lib/payment-methods";
+import { paymentInstructions } from "@/lib/payment-instructions";
 
 /**
  * POST /api/checkout
@@ -50,13 +57,20 @@ type ParsedBody = {
   email: string;
   shipping: CheckoutShipping;
   lines: RequestedLine[];
+  paymentMethod: PaymentMethod;
 };
 
 function parseBody(body: unknown): ParsedBody | null {
   if (typeof body !== "object" || body === null) return null;
   const r = body as Record<string, unknown>;
 
-  if (!isString(r.token)) return null;
+  // Omitted method means card, for older clients.
+  const paymentMethod: PaymentMethod = isPaymentMethod(r.paymentMethod)
+    ? r.paymentMethod
+    : "card";
+
+  // Manual methods have no card to tokenise, so no token is expected.
+  if (paymentMethod === "card" && !isString(r.token)) return null;
   if (!isString(r.email) || !EMAIL_RE.test(r.email.trim())) return null;
   if (!validateShipping(r.shipping)) return null;
   if (!Array.isArray(r.items) || r.items.length === 0) return null;
@@ -72,10 +86,11 @@ function parseBody(body: unknown): ParsedBody | null {
   }
 
   return {
-    token: r.token,
+    token: isString(r.token) ? r.token : "",
     email: r.email.trim(),
     shipping: r.shipping,
     lines,
+    paymentMethod,
   };
 }
 
@@ -116,8 +131,17 @@ export async function POST(request: NextRequest): Promise<Response> {
   if (!priced.ok) return fail(priced.error, 400);
   const { items, subtotalCents, shippingCents, totalCents } = priced.order;
 
+  // ── Payment method must actually be switched on ──────────────────────
+  const method = body.paymentMethod;
+  if (!enabledMethods().includes(method)) {
+    return fail("That payment method is not available.", 400);
+  }
+
+  const manual = isManual(method);
+
+  // Card-only preflight: refuse rather than fake an approval in production.
   const gatewayReady = isGatewayConfigured();
-  if (!gatewayReady && !mockAllowed()) {
+  if (!manual && !gatewayReady && !mockAllowed()) {
     return fail(
       "Card payments are not available yet. Please contact us to place this order.",
       503,
@@ -151,6 +175,7 @@ export async function POST(request: NextRequest): Promise<Response> {
       subtotalCents,
       shippingCents,
       totalCents,
+      paymentMethod: method,
     });
   } catch (err) {
     persisted = false;
@@ -165,6 +190,50 @@ export async function POST(request: NextRequest): Promise<Response> {
         503,
       );
     }
+  }
+
+  // ── Manual methods: no charge, just instructions ─────────────────────
+  //
+  // A manual order that we failed to persist is worthless — nobody would
+  // know to expect the money — so unlike a card sale this always fails
+  // loudly rather than proceeding.
+  if (manual) {
+    if (!persisted) {
+      return fail(
+        "We could not record your order. Please try again or contact us.",
+        503,
+      );
+    }
+
+    try {
+      await sendPaymentInstructions({
+        to: body.email,
+        orderRef,
+        method,
+        instructions: paymentInstructions(method),
+        items,
+        subtotalCents,
+        shippingCents,
+        totalCents,
+      });
+    } catch (err) {
+      // The order exists and is visible in the admin queue, so this is
+      // recoverable by hand — don't fail the customer's checkout over it.
+      console.error(
+        `[checkout] ${orderRef}: instructions email failed:`,
+        err instanceof Error ? err.message : err,
+      );
+    }
+
+    return Response.json(
+      {
+        ok: true,
+        orderId: orderRef,
+        awaitingPayment: true,
+        message: "Order recorded. Payment instructions sent by email.",
+      } satisfies CheckoutResponse,
+      { status: 200 },
+    );
   }
 
   // ── Charge ───────────────────────────────────────────────────────────

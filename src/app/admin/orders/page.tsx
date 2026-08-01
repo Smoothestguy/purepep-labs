@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { getAdminUser } from "@/lib/admin";
 import { listOrders, type OrderRow, type OrderStatus } from "@/lib/orders";
 import { formatCents } from "@/lib/pricing";
+import { METHOD_LABEL } from "@/lib/payment-methods";
+import { MarkPaidForm } from "./mark-paid-form";
 
 export const metadata: Metadata = {
   title: "Orders — The Pure Pep",
@@ -55,7 +57,7 @@ function OrderCard({ order }: { order: OrderRow }) {
     >
       {/* Row 1 — ref, status, total */}
       <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-2">
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2">
           <span
             className="font-mono tracking-[0.2em] text-foreground"
             style={{ fontSize: "clamp(11px, 0.3vw + 10px, 13px)" }}
@@ -63,6 +65,14 @@ function OrderCard({ order }: { order: OrderRow }) {
             {order.order_ref}
           </span>
           <StatusChip status={order.status} />
+          {order.payment_method && order.payment_method !== "card" ? (
+            <span
+              className="border border-hairline px-2 py-1 font-mono uppercase tracking-[0.18em] text-muted-foreground"
+              style={{ fontSize: "clamp(9px, 0.25vw + 8px, 10px)" }}
+            >
+              {METHOD_LABEL[order.payment_method]}
+            </span>
+          ) : null}
         </div>
         <span
           className="font-display leading-none text-foreground"
@@ -134,6 +144,22 @@ function OrderCard({ order }: { order: OrderRow }) {
         >
           {order.failure_reason}
         </p>
+      ) : null}
+
+      {/* Reconciliation trail for manual payments */}
+      {order.payment_reference || order.marked_paid_by ? (
+        <p
+          className="mt-2 font-mono text-muted-foreground"
+          style={{ fontSize: "clamp(9.5px, 0.25vw + 8.5px, 10.5px)" }}
+        >
+          {order.payment_reference ? `ref ${order.payment_reference}` : null}
+          {order.payment_reference && order.marked_paid_by ? " · " : null}
+          {order.marked_paid_by ? `marked by ${order.marked_paid_by}` : null}
+        </p>
+      ) : null}
+
+      {order.status === "pending" && order.payment_method !== "card" ? (
+        <MarkPaidForm orderRef={order.order_ref} />
       ) : null}
     </div>
   );

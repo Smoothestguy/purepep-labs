@@ -8,7 +8,12 @@ export const metadata: Metadata = {
 
 type SearchParams = Promise<{
   order?: string | string[];
+  awaiting?: string | string[];
 }>;
+
+function first(v: string | string[] | undefined): string | undefined {
+  return Array.isArray(v) ? v[0] : v;
+}
 
 export default async function CheckoutSuccessPage({
   searchParams,
@@ -16,21 +21,23 @@ export default async function CheckoutSuccessPage({
   searchParams: SearchParams;
 }) {
   const resolved = await searchParams;
-  const raw = Array.isArray(resolved.order) ? resolved.order[0] : resolved.order;
-  const orderId = raw ?? "UNKNOWN";
+  const orderId = first(resolved.order) ?? "UNKNOWN";
+  // Manual payment: order recorded, funds not yet received.
+  const awaitingPayment = first(resolved.awaiting) === "1";
 
   return (
     <>
-      {/* Heat banner — matches the pattern Agent E uses on legal pages */}
-      <div className="border-b border-heat/40 bg-heat/10 text-heat-foreground">
-        <div
-          className="mx-auto flex max-w-[var(--content-max)] items-center gap-3 pad-x py-3 font-mono tracking-[0.25em] uppercase text-heat"
-          style={{ fontSize: "clamp(10px, 0.3vw + 9px, 11px)" }}
-        >
-          <span aria-hidden className="size-1.5 rounded-full bg-heat" />
-          [Mock approval — NMI gateway not wired in Phase 2]
+      {awaitingPayment ? (
+        <div className="border-b border-brand/40 bg-brand/10">
+          <div
+            className="mx-auto flex max-w-[var(--content-max)] items-center gap-3 pad-x py-3 font-mono tracking-[0.25em] uppercase text-brand"
+            style={{ fontSize: "clamp(10px, 0.3vw + 9px, 11px)" }}
+          >
+            <span aria-hidden className="size-1.5 rounded-full bg-brand" />
+            Awaiting payment — check your email for instructions
+          </div>
         </div>
-      </div>
+      ) : null}
 
       <section className="relative border-b border-hairline">
         <div
@@ -53,7 +60,7 @@ export default async function CheckoutSuccessPage({
             className="display-hero"
             style={{ marginTop: "clamp(1rem, 1.5vw, 1.5rem)" }}
           >
-            Lodged.
+            {awaitingPayment ? "Reserved." : "Lodged."}
           </h1>
 
           <div
@@ -76,7 +83,9 @@ export default async function CheckoutSuccessPage({
               style={{ fontSize: "clamp(10px, 0.3vw + 9px, 11px)" }}
             >
               <span className="text-muted-foreground">Status</span>
-              <span className="text-brand">Mock approval</span>
+              <span className="text-brand">
+                {awaitingPayment ? "Awaiting payment" : "Confirmed"}
+              </span>
             </div>
           </div>
 
@@ -84,9 +93,21 @@ export default async function CheckoutSuccessPage({
             className="body-lede max-w-xl"
             style={{ marginTop: "clamp(1.5rem, 2.5vw, 2rem)" }}
           >
-            A confirmation is on its way to your inbox. Every lot ships
-            cold-chain within one business day, accompanied by a
-            third-party-signed Certificate of Analysis.
+            {awaitingPayment ? (
+              <>
+                We&rsquo;ve emailed payment instructions along with the amount
+                due. Quote <strong className="text-foreground">{orderId}</strong>{" "}
+                as your reference so we can match the payment to this order. We
+                dispatch cold-chain as soon as funds clear, with a
+                third-party-signed Certificate of Analysis in every shipment.
+              </>
+            ) : (
+              <>
+                A confirmation is on its way to your inbox. Every lot ships
+                cold-chain within one business day, accompanied by a
+                third-party-signed Certificate of Analysis.
+              </>
+            )}
           </p>
 
           <div

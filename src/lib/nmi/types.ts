@@ -77,13 +77,22 @@ export type CheckoutLineItem = {
 };
 
 export type CheckoutRequest = {
-  token: string; // CollectJS one-time token, or "MOCK" in demo mode
+  /** CollectJS one-time token. Empty for manual payment methods. */
+  token: string;
   email: string;
   shipping: CheckoutShipping;
   items: CheckoutLineItem[];
   total: number;
+  /** Defaults to "card" when omitted. */
+  paymentMethod?: "card" | "bank_transfer" | "crypto";
 };
 
 export type CheckoutResponse =
-  | { ok: true; orderId: string; message: string }
+  | {
+      ok: true;
+      orderId: string;
+      message: string;
+      /** Manual orders await funds; the UI shows instructions instead of a receipt. */
+      awaitingPayment?: boolean;
+    }
   | { ok: false; error: string };

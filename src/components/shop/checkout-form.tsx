@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useCart } from "@/lib/cart/store";
 import {
@@ -16,6 +16,13 @@ import type {
   CollectJSTokenResponse,
 } from "@/lib/nmi/types";
 import { OrderSummary, SHIPPING_FLAT } from "./order-summary";
+import {
+  METHOD_BLURB,
+  METHOD_LABEL,
+  enabledMethods,
+  isManual,
+  type PaymentMethod,
+} from "@/lib/payment-methods";
 
 type ShippingForm = CheckoutShipping;
 
@@ -45,6 +52,22 @@ export function CheckoutForm() {
     process.env.NEXT_PUBLIC_NMI_TOKENIZATION_KEY,
   );
   const demoMode = !hasTokenKey;
+
+  // Methods are fixed at build time by env, so this is stable across renders.
+  const methods = useMemo(() => enabledMethods(), []);
+  const [method, setMethod] = useState<PaymentMethod>(
+    () => enabledMethods()[0] ?? "card",
+  );
+  const manualSelected = isManual(method);
+
+  // CollectJS is configured once on mount and binds to the submit button,
+  // so its callback closes over the method as it was at configure time.
+  // A ref keeps it reading the live value — otherwise switching to bank
+  // transfer after mount would still fire tokenization and double-submit.
+  const methodRef = useRef<PaymentMethod>(method);
+  useEffect(() => {
+    methodRef.current = method;
+  }, [method]);
 
   const [email, setEmail] = useState("");
   const [shipping, setShipping] = useState<ShippingForm>(EMPTY_SHIPPING);
@@ -82,7 +105,10 @@ export function CheckoutForm() {
               cvv: { selector: "#cvv", placeholder: "CVV" },
             },
             callback: (response: CollectJSTokenResponse) => {
-              void submitCheckout(response.token);
+              // Ignore a stray tokenization if the customer switched to a
+              // manual method — onSubmit already handled that path.
+              if (isManual(methodRef.current)) return;
+              void submitCheckout(response.token, "card");
             },
           });
           setCollectReady(true);
@@ -107,10 +133,11 @@ export function CheckoutForm() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [demoMode]);
 
-  async function submitCheckout(token: string) {
+  async function submitCheckout(token: string, chosen: PaymentMethod = method) {
     try {
       const payload: CheckoutRequest = {
         token,
+        paymentMethod: chosen,
         email: email.trim(),
         shipping: {
           ...shipping,
@@ -142,7 +169,10 @@ export function CheckoutForm() {
       }
 
       clear();
-      router.push(`/checkout/success?order=${encodeURIComponent(data.orderId)}`);
+      const awaiting = data.awaitingPayment ? "&awaiting=1" : "";
+      router.push(
+        `/checkout/success?order=${encodeURIComponent(data.orderId)}${awaiting}`,
+      );
     } catch (err) {
       toast.error(
         err instanceof Error ? err.message : "Network error. Try again.",
@@ -160,6 +190,12 @@ export function CheckoutForm() {
     }
 
     setSubmitting(true);
+
+    // Manual methods never touch CollectJS — there is no card to tokenise.
+    if (manualSelected) {
+      void submitCheckout("", method);
+      return;
+    }
 
     if (demoMode) {
       // No tokenization — simulate an approved token.
@@ -314,7 +350,84 @@ export function CheckoutForm() {
           </Section>
 
           <Section title="§ C · Payment">
-            {demoMode ? (
+            {/* Method picker — only when there's an actual choice. */}
+            {methods.length > 1 ? (
+              <div
+                role="radiogroup"
+                aria-label="Payment method"
+                className="grid grid-cols-1"
+                style={{
+                  gap: "clamp(0.5rem, 0.8vw, 0.65rem)",
+                  marginBottom: "clamp(1.25rem, 2vw, 1.75rem)",
+                }}
+              >
+                {methods.map((m) => {
+                  const active = m === method;
+                  return (
+                    <button
+                      key={m}
+                      type="button"
+                      role="radio"
+                      aria-checked={active}
+                      onClick={() => setMethod(m)}
+                      className={`flex items-start gap-3 border text-left transition-colors ${
+                        active
+                          ? "border-brand bg-brand/5"
+                          : "border-hairline hover:border-foreground/40"
+                      }`}
+                      style={{ padding: "clamp(0.85rem, 1.3vw, 1.1rem)" }}
+                    >
+                      <span
+                        aria-hidden
+                        className={`mt-0.5 size-3 shrink-0 rounded-full border ${
+                          active ? "border-brand bg-brand" : "border-hairline"
+                        }`}
+                      />
+                      <span className="min-w-0">
+                        <span
+                          className={`block font-mono uppercase tracking-[0.18em] ${
+                            active ? "text-brand" : "text-foreground"
+                          }`}
+                          style={{ fontSize: "clamp(10px, 0.28vw + 9px, 11px)" }}
+                        >
+                          {METHOD_LABEL[m]}
+                        </span>
+                        <span
+                          className="mt-1 block font-sans leading-relaxed text-muted-foreground"
+                          style={{
+                            fontSize: "clamp(11px, 0.3vw + 10px, 12.5px)",
+                          }}
+                        >
+                          {METHOD_BLURB[m]}
+                        </span>
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            ) : null}
+
+            {methods.length === 0 ? (
+              <p
+                className="border border-heat/40 bg-heat/10 font-mono text-heat"
+                style={{
+                  padding: "clamp(0.85rem, 1.3vw, 1.1rem)",
+                  fontSize: "clamp(11px, 0.3vw + 10px, 12px)",
+                }}
+              >
+                No payment methods are currently available. Please contact us to
+                place this order.
+              </p>
+            ) : manualSelected ? (
+              <p
+                className="font-sans leading-relaxed text-muted-foreground"
+                style={{ fontSize: "clamp(11px, 0.3vw + 10px, 12.5px)" }}
+              >
+                We&rsquo;ll email payment details and your order reference as
+                soon as you place the order. Nothing is charged now, and your
+                order is reserved until funds clear.
+              </p>
+            ) : demoMode ? (
               <p
                 className="font-mono tracking-[0.05em] text-muted-foreground"
                 style={{ fontSize: "clamp(11px, 0.3vw + 10px, 12px)" }}
@@ -361,7 +474,13 @@ export function CheckoutForm() {
                   fontSize: "clamp(10px, 0.3vw + 9px, 11px)",
                 }}
               >
-                <span>{submitting ? "Processing…" : "Place order"}</span>
+                <span>
+                  {submitting
+                    ? "Processing…"
+                    : manualSelected
+                      ? "Place order"
+                      : "Pay & place order"}
+                </span>
                 <span className="transition-transform group-hover:translate-x-1">
                   →
                 </span>
