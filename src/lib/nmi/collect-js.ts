@@ -1,6 +1,7 @@
 "use client";
 
 import type { CollectJSConfig } from "./types";
+import { collectJsUrl } from "./config";
 
 /**
  * Client-only CollectJS loader.
@@ -10,9 +11,6 @@ import type { CollectJSConfig } from "./types";
  * that attribute and exposes `window.CollectJS`. We inject the tag once
  * per page load and memoise the promise so repeat calls are cheap.
  */
-
-const SCRIPT_SRC =
-  "https://secure.networkmerchants.com/token/Collect.js";
 
 let loadPromise: Promise<void> | null = null;
 
@@ -32,14 +30,16 @@ export function loadCollectJS(): Promise<void> {
     );
   }
 
+  const scriptSrc = collectJsUrl();
+
   loadPromise = new Promise<void>((resolve, reject) => {
     // Guard against a stale <script> already on the page (e.g. from a
     // previous soft-navigation); reuse it if so.
     const existing = document.querySelector<HTMLScriptElement>(
-      `script[src="${SCRIPT_SRC}"]`,
+      `script[src="${scriptSrc}"]`,
     );
     const script = existing ?? document.createElement("script");
-    script.src = SCRIPT_SRC;
+    script.src = scriptSrc;
     script.async = true;
     script.setAttribute("data-tokenization-key", tokenKey);
 

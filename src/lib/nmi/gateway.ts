@@ -1,6 +1,7 @@
 import "server-only";
 
 import type { CheckoutShipping } from "./types";
+import { transactUrl } from "./config";
 
 /**
  * Server-side NMI Direct Post (transact.php) client.
@@ -12,13 +13,11 @@ import type { CheckoutShipping } from "./types";
  * Both the request and the response are x-www-form-urlencoded — NMI's API
  * predates JSON and still speaks form encoding in both directions.
  *
- * NOTE: this path is inert until a merchant account is approved and
- * NMI_SECURITY_KEY is set. Until then `chargeCard` is never called; see
- * `isGatewayConfigured`. It has therefore not been exercised against the
- * live endpoint — verify with NMI's test credentials before going live.
+ * Verified against NMI's sandbox: a $57.99 sale returned response=1 with
+ * an auth code and transaction id, confirming the request encoding and the
+ * response parsing below. The endpoint origin is configurable — sandbox
+ * accounts are rejected by the production host and vice versa (see config).
  */
-
-const TRANSACT_URL = "https://secure.networkmerchants.com/api/transact.php";
 
 /** Abort the gateway call rather than hang a checkout request forever. */
 const TIMEOUT_MS = 20_000;
@@ -94,7 +93,7 @@ export async function chargeCard(input: ChargeInput): Promise<ChargeResult> {
 
   let raw: Record<string, string>;
   try {
-    const res = await fetch(TRANSACT_URL, {
+    const res = await fetch(transactUrl(), {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: form.toString(),
