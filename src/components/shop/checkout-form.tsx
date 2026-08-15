@@ -9,17 +9,16 @@ import {
   configureCollectJS,
   startCollectJSPaymentRequest,
 } from "@/lib/nmi/collect-js";
+import type { CollectJSTokenResponse } from "@/lib/nmi/types";
 import type {
   CheckoutRequest,
   CheckoutResponse,
   CheckoutShipping,
-  CollectJSTokenResponse,
-} from "@/lib/nmi/types";
+} from "@/lib/checkout/types";
 import { OrderSummary, SHIPPING_FLAT } from "./order-summary";
 import {
   METHOD_BLURB,
   METHOD_LABEL,
-  enabledMethods,
   isManual,
   type PaymentMethod,
 } from "@/lib/payment-methods";
@@ -37,28 +36,41 @@ const EMPTY_SHIPPING: ShippingForm = {
   phone: "",
 };
 
+type Props = {
+  /**
+   * Offered methods, resolved on the server — deciding whether card is
+   * available needs a secret key, so it cannot be worked out here.
+   */
+  methods: PaymentMethod[];
+  /** Which processor handles a card payment. */
+  processor: "stripe" | "nmi";
+};
+
 /**
  * Long, single-form checkout. Three sections — contact, shipping,
  * payment — separated by hairlines. Review column (OrderSummary) is
- * sticky on lg+. Payment uses CollectJS if the public tokenization key
- * is configured, otherwise a clearly-labelled mock banner is shown and
- * the form submits with `token: "MOCK"`.
+ * sticky on lg+.
+ *
+ * How the card section behaves depends on the processor. Under Stripe
+ * there are no card fields at all: we collect contact and shipping, then
+ * hand off to Stripe's hosted page. Under NMI, CollectJS mounts its
+ * iframes here and tokenises before submit — or, with no tokenization key,
+ * a clearly-labelled mock banner is shown and the form submits `MOCK`.
  */
-export function CheckoutForm() {
+export function CheckoutForm({ methods, processor }: Props) {
   const router = useRouter();
   const { items, subtotal, clear, hydrated } = useCart();
 
-  const hasTokenKey = Boolean(
-    process.env.NEXT_PUBLIC_NMI_TOKENIZATION_KEY,
-  );
-  const demoMode = !hasTokenKey;
+  const usingCollectJs = processor === "nmi";
+  const hasTokenKey = Boolean(process.env.NEXT_PUBLIC_NMI_TOKENIZATION_KEY);
+  // Mock approvals only ever existed for NMI; Stripe has test keys instead.
+  const demoMode = usingCollectJs && !hasTokenKey;
 
-  // Methods are fixed at build time by env, so this is stable across renders.
-  const methods = useMemo(() => enabledMethods(), []);
   const [method, setMethod] = useState<PaymentMethod>(
-    () => enabledMethods()[0] ?? "card",
+    () => methods[0] ?? "card",
   );
   const manualSelected = isManual(method);
+  const stripeSelected = !manualSelected && processor === "stripe";
 
   // CollectJS is configured once on mount and binds to the submit button,
   // so its callback closes over the method as it was at configure time.
@@ -87,9 +99,10 @@ export function CheckoutForm() {
     }
   }, [hydrated, items.length, router]);
 
-  // Load + configure CollectJS once (only when a real key is present).
+  // Load + configure CollectJS once — NMI only, and only with a real key.
+  // Under Stripe this never runs: no card ever touches this page.
   useEffect(() => {
-    if (demoMode) return;
+    if (!usingCollectJs || demoMode) return;
 
     let cancelled = false;
     loadCollectJS()
@@ -131,7 +144,7 @@ export function CheckoutForm() {
     // `submitCheckout` is defined below; stable enough to omit — the
     // callback always reads fresh state via `useCart()` inside.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [demoMode]);
+  }, [usingCollectJs, demoMode]);
 
   async function submitCheckout(token: string, chosen: PaymentMethod = method) {
     try {
@@ -161,10 +174,27 @@ export function CheckoutForm() {
       const data = (await res.json()) as CheckoutResponse;
 
       if (!res.ok || !data.ok) {
+        // 401 means the session lapsed between loading the page and
+        // submitting — send them to sign in rather than showing a toast
+        // they can't act on.
+        if (res.status === 401) {
+          toast.error("Please sign in to place an order.");
+          router.push(`/login?redirect=${encodeURIComponent("/checkout")}`);
+          return;
+        }
         toast.error(
           ("error" in data && data.error) || "Checkout failed. Try again.",
         );
         setSubmitting(false);
+        return;
+      }
+
+      // Stripe: hand off to the hosted page. The cart is deliberately not
+      // cleared here — nothing has been paid yet, and a customer who backs
+      // out or lets the session expire must return to a cart that still
+      // holds their order. The success page clears it instead.
+      if (data.redirectUrl) {
+        window.location.href = data.redirectUrl;
         return;
       }
 
@@ -191,8 +221,9 @@ export function CheckoutForm() {
 
     setSubmitting(true);
 
-    // Manual methods never touch CollectJS — there is no card to tokenise.
-    if (manualSelected) {
+    // Neither manual methods nor Stripe tokenise here — there is no card
+    // in this form to tokenise.
+    if (manualSelected || stripeSelected) {
       void submitCheckout("", method);
       return;
     }
@@ -427,6 +458,16 @@ export function CheckoutForm() {
                 soon as you place the order. Nothing is charged now, and your
                 order is reserved until funds clear.
               </p>
+            ) : stripeSelected ? (
+              <p
+                className="font-sans leading-relaxed text-muted-foreground"
+                style={{ fontSize: "clamp(11px, 0.3vw + 10px, 12.5px)" }}
+              >
+                You&rsquo;ll be taken to Stripe&rsquo;s secure payment page to
+                enter your card, then returned here. Card details never touch
+                our servers, and nothing is charged until you confirm on that
+                page.
+              </p>
             ) : demoMode ? (
               <p
                 className="font-mono tracking-[0.05em] text-muted-foreground"
@@ -479,7 +520,9 @@ export function CheckoutForm() {
                     ? "Processing…"
                     : manualSelected
                       ? "Place order"
-                      : "Pay & place order"}
+                      : stripeSelected
+                        ? "Continue to payment"
+                        : "Pay & place order"}
                 </span>
                 <span className="transition-transform group-hover:translate-x-1">
                   →

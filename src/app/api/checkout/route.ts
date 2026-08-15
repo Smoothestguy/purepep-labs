@@ -1,35 +1,40 @@
 import type { NextRequest } from "next/server";
-import type { CheckoutResponse, CheckoutShipping } from "@/lib/nmi/types";
+import type { CheckoutResponse, CheckoutShipping } from "@/lib/checkout/types";
 import { chargeCard, isGatewayConfigured } from "@/lib/nmi/gateway";
 import { priceOrder, type RequestedLine } from "@/lib/pricing";
 import {
+  attachStripeSession,
   createPendingOrder,
   generateOrderRef,
   markOrderFailed,
   markOrderPaid,
 } from "@/lib/orders";
-import { createClient } from "@/lib/supabase/server";
+import { getCurrentUser } from "@/lib/auth/user";
+import { resolveSiteOrigin } from "@/lib/site-url";
+import { cardProcessor, enabledMethods } from "@/lib/payments/processor";
+import { createCheckoutSession } from "@/lib/stripe/checkout";
 import { sendOrderConfirmation, sendPaymentInstructions } from "@/lib/email";
-import {
-  enabledMethods,
-  isManual,
-  isPaymentMethod,
-  type PaymentMethod,
-} from "@/lib/payment-methods";
+import { isManual, isPaymentMethod, type PaymentMethod } from "@/lib/payment-methods";
 import { paymentInstructions } from "@/lib/payment-instructions";
 
 /**
  * POST /api/checkout
  *
  * Order of operations matters here:
- *   1. Validate the payload shape.
- *   2. Re-price the cart from the catalog — the browser's prices and total
+ *   1. Require a signed-in researcher — purchasing is gated.
+ *   2. Validate the payload shape.
+ *   3. Re-price the cart from the catalog — the browser's prices and total
  *      are ignored entirely (see lib/pricing).
- *   3. Write a 'pending' order, so a row exists even if step 4 dies.
- *   4. Charge the CollectJS token.
- *   5. Mark paid/failed, then email the customer.
+ *   4. Write a 'pending' order, so a row exists even if step 5 dies.
+ *   5. Hand off to the processor.
  *
- * Card data never reaches this handler — only the one-time token.
+ * Step 5 differs by processor. NMI settles inline: the card is charged
+ * here and the order is paid (or declined) before the response returns.
+ * Stripe does not — we mint a Checkout Session, hand back its URL, and the
+ * order stays 'pending' until the `checkout.session.completed` webhook
+ * arrives. Nothing in this handler may ever report a Stripe order as paid.
+ *
+ * Card data never reaches this handler under either processor.
  */
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -69,8 +74,15 @@ function parseBody(body: unknown): ParsedBody | null {
     ? r.paymentMethod
     : "card";
 
-  // Manual methods have no card to tokenise, so no token is expected.
-  if (paymentMethod === "card" && !isString(r.token)) return null;
+  // Only the NMI card path expects a token; Stripe collects the card on
+  // its own page, and manual methods have no card at all.
+  if (
+    paymentMethod === "card" &&
+    cardProcessor() === "nmi" &&
+    !isString(r.token)
+  ) {
+    return null;
+  }
   if (!isString(r.email) || !EMAIL_RE.test(r.email.trim())) return null;
   if (!validateShipping(r.shipping)) return null;
   if (!Array.isArray(r.items) || r.items.length === 0) return null;
@@ -101,9 +113,10 @@ function fail(error: string, status: number): Response {
 }
 
 /**
- * Mock approvals are a development affordance. Allowing them in production
- * would mean customers receive "order confirmed" pages for money that was
- * never taken — so they are off unless explicitly opted into.
+ * Mock approvals are a development affordance for the NMI path. Allowing
+ * them in production would mean customers receive "order confirmed" pages
+ * for money that was never taken — so they are off unless explicitly opted
+ * into. Stripe has no equivalent: use its test keys instead.
  */
 function mockAllowed(): boolean {
   if (process.env.ALLOW_MOCK_CHECKOUT === "true") return true;
@@ -111,6 +124,15 @@ function mockAllowed(): boolean {
 }
 
 export async function POST(request: NextRequest): Promise<Response> {
+  // ── Purchasing requires an account ───────────────────────────────────
+  //
+  // Checked before anything else: an unauthenticated request should not
+  // be able to probe pricing or catalog errors either.
+  const user = await getCurrentUser();
+  if (!user) {
+    return fail("Please sign in to place an order.", 401);
+  }
+
   let json: unknown;
   try {
     json = await request.json();
@@ -121,7 +143,7 @@ export async function POST(request: NextRequest): Promise<Response> {
   const body = parseBody(json);
   if (!body) {
     return fail(
-      "Missing or invalid fields. Expected token, email, shipping, items.",
+      "Missing or invalid fields. Expected email, shipping, items.",
       400,
     );
   }
@@ -138,27 +160,27 @@ export async function POST(request: NextRequest): Promise<Response> {
   }
 
   const manual = isManual(method);
+  const processor = cardProcessor();
+  const usingStripe = !manual && processor === "stripe";
 
   // Card-only preflight: refuse rather than fake an approval in production.
-  const gatewayReady = isGatewayConfigured();
-  if (!manual && !gatewayReady && !mockAllowed()) {
+  const nmiReady = isGatewayConfigured();
+  if (!manual && processor === "nmi" && !nmiReady && !mockAllowed()) {
     return fail(
       "Card payments are not available yet. Please contact us to place this order.",
       503,
     );
   }
 
-  // Attach the order to a signed-in user when there is one. Guest checkout
-  // still works — user_id is simply null.
-  let userId: string | null = null;
-  try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    userId = user?.id ?? null;
-  } catch {
-    // Supabase not configured locally — proceed as a guest order.
+  let origin: string | null = null;
+  if (usingStripe) {
+    origin = resolveSiteOrigin(request.nextUrl.origin);
+    if (!origin) {
+      console.error(
+        "[checkout] cannot resolve site origin — set NEXT_PUBLIC_SITE_URL.",
+      );
+      return fail("Checkout is misconfigured. Please contact us.", 503);
+    }
   }
 
   const orderRef = generateOrderRef();
@@ -168,7 +190,7 @@ export async function POST(request: NextRequest): Promise<Response> {
   try {
     await createPendingOrder({
       orderRef,
-      userId,
+      userId: user.id,
       email: body.email,
       items,
       shipping: body.shipping,
@@ -176,6 +198,7 @@ export async function POST(request: NextRequest): Promise<Response> {
       shippingCents,
       totalCents,
       paymentMethod: method,
+      gateway: manual ? null : processor,
     });
   } catch (err) {
     persisted = false;
@@ -236,8 +259,59 @@ export async function POST(request: NextRequest): Promise<Response> {
     );
   }
 
-  // ── Charge ───────────────────────────────────────────────────────────
-  if (!gatewayReady) {
+  // ── Stripe: hand off to the hosted page ──────────────────────────────
+  //
+  // Like the manual methods, this refuses to continue without a persisted
+  // order: the webhook settles the payment by looking the order up, so a
+  // session minted against a row that does not exist would take money we
+  // could never attribute.
+  if (usingStripe) {
+    if (!persisted) {
+      return fail(
+        "We could not record your order. No payment was taken. Please try again.",
+        503,
+      );
+    }
+
+    const session = await createCheckoutSession({
+      order: priced.order,
+      orderRef,
+      email: body.email,
+      userId: user.id,
+      shipping: body.shipping,
+      origin: origin as string,
+    });
+
+    if (!session.ok) {
+      await markOrderFailed(orderRef, session.error);
+      return fail(session.error, 502);
+    }
+
+    try {
+      await attachStripeSession(orderRef, session.sessionId);
+    } catch (err) {
+      // Recoverable: the webhook also resolves the order from the
+      // `order_ref` metadata on the session, so a missed write here does
+      // not strand the payment.
+      console.error(
+        `[checkout] ${orderRef}: could not attach session id:`,
+        err instanceof Error ? err.message : err,
+      );
+    }
+
+    return Response.json(
+      {
+        ok: true,
+        orderId: orderRef,
+        redirectUrl: session.url,
+        message: "Redirecting to secure payment.",
+      } satisfies CheckoutResponse,
+      { status: 200 },
+    );
+  }
+
+  // ── NMI: charge inline ───────────────────────────────────────────────
+  if (!nmiReady) {
     console.warn(
       `[checkout] ${orderRef}: gateway not configured — mock approval (no payment taken).`,
     );

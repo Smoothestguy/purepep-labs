@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { compounds, defaultVariant, slugify } from "@/lib/compounds";
+import { GatedPrice } from "@/components/shop/price";
 
 export function CompoundIndex() {
   return (
@@ -112,15 +113,13 @@ export function CompoundIndex() {
                     {String(i + 1).padStart(2, "0")} / {compounds.length}
                   </span>
                 </div>
-                <div
-                  className="flex items-baseline gap-1 font-display leading-none tracking-tight"
-                  style={{ fontSize: "clamp(1.6rem, 5vw, 2rem)" }}
-                >
-                  <span className="font-mono tracking-[0.25em] uppercase text-muted-foreground" style={{ fontSize: "clamp(9px, 0.25vw + 8px, 10px)" }}>
-                    USD
-                  </span>
-                  <span>${v.price}</span>
-                </div>
+                {/* interactive={false}: this row is already wrapped in a Link. */}
+                <GatedPrice
+                  value={v.price}
+                  fontSize="clamp(1.6rem, 5vw, 2rem)"
+                  labelFontSize="clamp(9px, 0.25vw + 8px, 10px)"
+                  interactive={false}
+                />
               </div>
               <div>
                 <h3
@@ -246,14 +245,13 @@ export function CompoundIndex() {
                   {v.dose}
                 </div>
               </div>
-              <div
-                className="flex items-baseline justify-end gap-1 font-display leading-none tracking-tight"
-                style={{ fontSize: "clamp(1.5rem, 2.8vw, 2.1rem)" }}
-              >
-                <span className="font-mono tracking-[0.25em] uppercase text-muted-foreground" style={{ fontSize: "clamp(9px, 0.2vw + 8.5px, 10px)" }}>
-                  USD
-                </span>
-                <span>${v.price}</span>
+              <div className="flex justify-end">
+                <GatedPrice
+                  value={v.price}
+                  fontSize="clamp(1.5rem, 2.8vw, 2.1rem)"
+                  labelFontSize="clamp(9px, 0.2vw + 8.5px, 10px)"
+                  interactive={false}
+                />
               </div>
             </div>
 
@@ -330,14 +328,13 @@ export function CompoundIndex() {
                   {v.dose} fill
                 </div>
               </div>
-              <div
-                className="flex items-baseline justify-end gap-1 font-display leading-none tracking-tight"
-                style={{ fontSize: "clamp(2rem, 3vw, 2.5rem)" }}
-              >
-                <span className="font-mono tracking-[0.25em] uppercase text-muted-foreground" style={{ fontSize: "clamp(9px, 0.2vw + 8.5px, 10px)" }}>
-                  USD
-                </span>
-                <span>${v.price}</span>
+              <div className="flex justify-end">
+                <GatedPrice
+                  value={v.price}
+                  fontSize="clamp(2rem, 3vw, 2.5rem)"
+                  labelFontSize="clamp(9px, 0.2vw + 8.5px, 10px)"
+                  interactive={false}
+                />
               </div>
             </div>
           </Link>

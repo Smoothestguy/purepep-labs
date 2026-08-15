@@ -57,11 +57,23 @@ export async function updateSession(request: NextRequest) {
     console.warn("[supabase] getUser error:", error.message);
   }
 
-  // Gate inventory routes behind auth. Public surface: marketing home, auth
-  // pages, legal pages, and metadata/SEO routes.
+  // Gate *ordering* behind auth, not browsing.
+  //
+  // The catalog — /shop, individual monographs, and the CoA archive — is
+  // deliberately public so the marketing site and its search indexing keep
+  // working. What those pages hide from signed-out visitors is pricing and
+  // the buy button, enforced in the components themselves (see
+  // components/shop/price.tsx). /cart, /checkout and /admin stay gated,
+  // and POST /api/checkout re-checks the session regardless.
+  //
+  // Note this whole function short-circuits when Supabase env is missing,
+  // so nothing here can be the only line of defence.
   const { pathname } = request.nextUrl;
   const isPublicPath =
     pathname === "/" ||
+    pathname === "/shop" ||
+    pathname.startsWith("/product/") ||
+    pathname === "/coa" ||
     pathname.startsWith("/login") ||
     pathname.startsWith("/register") ||
     pathname.startsWith("/forgot-password") ||

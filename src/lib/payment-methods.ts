@@ -1,15 +1,20 @@
 /**
  * Payment methods offered at checkout.
  *
- * `card` runs through NMI and settles inside the checkout request.
- * `bank_transfer` and `crypto` settle out-of-band: the order is recorded
- * as pending, the customer gets instructions, and an operator marks it
- * paid once funds arrive.
+ * `card` is handled by whichever processor is active (Stripe by default,
+ * NMI behind an env switch — see lib/payments/processor). `bank_transfer`
+ * and `crypto` settle out-of-band: the order is recorded as pending, the
+ * customer gets instructions, and an operator marks it paid once funds
+ * arrive.
  *
  * Which manual methods appear is driven by NEXT_PUBLIC_PAYMENT_METHODS
- * (comma-separated) so they can be switched on without a deploy. Card is
- * offered whenever a tokenization key is present. If nothing is enabled
- * the checkout says so rather than rendering a dead form.
+ * (comma-separated) so they can be switched on without a deploy. If
+ * nothing is enabled the checkout says so rather than rendering a dead
+ * form.
+ *
+ * This module stays isomorphic — the client form imports the labels — so
+ * it deliberately knows nothing about secret keys. Whether card is
+ * actually available is decided server-side and passed in.
  */
 
 export const PAYMENT_METHODS = ["card", "bank_transfer", "crypto"] as const;
@@ -43,17 +48,16 @@ export function enabledManualMethods(): ManualMethod[] {
 }
 
 /**
- * Card is only offered when CollectJS has a key to tokenise with. Without
- * it the card fields cannot render, so showing the option would be a dead
- * end — better to hide it and leave the manual methods.
+ * Assemble the offered methods.
+ *
+ * `cardAvailable` comes from the server (lib/payments/processor), because
+ * deciding it requires reading a secret key. Offering a card option the
+ * server would refuse is a dead end for the customer, so it is hidden
+ * instead, leaving whatever manual methods are switched on.
  */
-export function cardEnabled(): boolean {
-  return Boolean(process.env.NEXT_PUBLIC_NMI_TOKENIZATION_KEY);
-}
-
-export function enabledMethods(): PaymentMethod[] {
+export function methodsFor(cardAvailable: boolean): PaymentMethod[] {
   return [
-    ...(cardEnabled() ? (["card"] as const) : []),
+    ...(cardAvailable ? (["card"] as const) : []),
     ...enabledManualMethods(),
   ];
 }

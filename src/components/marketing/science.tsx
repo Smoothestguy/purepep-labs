@@ -45,7 +45,10 @@ const steps = [
 
 export function Science() {
   return (
-    <section id="science" className="relative border-b border-hairline bg-background">
+    <section
+      id="science"
+      className="relative border-b border-hairline bg-background"
+    >
       <div
         className="mx-auto grid w-full max-w-[var(--content-max)] grid-cols-1 pad-x section-y lg:grid-cols-12"
         style={{
@@ -57,7 +60,10 @@ export function Science() {
           <div className="lg:sticky lg:top-[clamp(5rem,8vw,7rem)]">
             <div className="section-eyebrow">
               <span className="whitespace-nowrap text-brand">§ 03</span>
-              <span className="h-px shrink-0 bg-hairline" style={{ width: "clamp(1.5rem, 3vw, 2.75rem)" }} />
+              <span
+                className="h-px shrink-0 bg-hairline"
+                style={{ width: "clamp(1.5rem, 3vw, 2.75rem)" }}
+              />
               <span>Method</span>
             </div>
             <h2
@@ -72,7 +78,8 @@ export function Science() {
                 between the residue
               </span>
               <span className="block">
-                and the <span className="italic text-gradient-brand">vial.</span>
+                and the{" "}
+                <span className="italic text-gradient-brand">vial.</span>
               </span>
             </h2>
             <p
@@ -148,7 +155,10 @@ export function Science() {
               <div className="min-w-0 flex-1">
                 <div
                   className="flex flex-wrap items-baseline justify-between"
-                  style={{ columnGap: "clamp(0.75rem, 2vw, 1.5rem)", rowGap: "0.25rem" }}
+                  style={{
+                    columnGap: "clamp(0.75rem, 2vw, 1.5rem)",
+                    rowGap: "0.25rem",
+                  }}
                 >
                   <h3
                     className="font-display leading-tight tracking-tight"

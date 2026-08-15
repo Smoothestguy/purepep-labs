@@ -1,9 +1,12 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import { useState } from "react";
 import { compounds, defaultVariant, type Compound } from "@/lib/compounds";
 import { useCart } from "@/lib/cart/store";
+import { useSignedIn } from "@/components/shared/auth-provider";
+import { LockedPrice, PricePlaceholder } from "@/components/shop/price";
 
 const Scene = dynamic(
   () => import("@/components/three/scene").then((m) => m.Scene),
@@ -30,6 +33,7 @@ export function CinematicHero() {
   const variant = defaultVariant(compound);
   const bg = BG_BY_CATEGORY[compound.category];
   const { addItem } = useCart();
+  const { signedIn, loading: sessionLoading } = useSignedIn();
 
   const next = () => setIndex((i) => (i + 1) % compounds.length);
   const prev = () =>
@@ -154,24 +158,46 @@ export function CinematicHero() {
             >
               {variant.dose}
             </div>
-            <div
-              className="mt-1 font-display leading-none tracking-tight text-foreground"
-              style={{ fontSize: "clamp(1.5rem, 2.5vw, 2.25rem)" }}
-            >
-              ${variant.price}
+            <div className="mt-1 flex justify-end">
+              {sessionLoading ? (
+                <PricePlaceholder fontSize="11px" />
+              ) : signedIn ? (
+                <span
+                  className="font-display leading-none tracking-tight text-foreground"
+                  style={{ fontSize: "clamp(1.5rem, 2.5vw, 2.25rem)" }}
+                >
+                  ${variant.price}
+                </span>
+              ) : (
+                <LockedPrice fontSize="10.5px" />
+              )}
             </div>
           </div>
-          <button
-            onClick={() => addItem(compound, variant)}
-            className="bg-brand font-mono tracking-[0.3em] uppercase text-brand-foreground transition-all hover:shadow-[0_0_0_4px_oklch(0.82_0.15_210_/_0.18)]"
-            style={{
-              paddingInline: "clamp(1rem, 1.6vw, 1.4rem)",
-              paddingBlock: "clamp(0.75rem, 1vw, 1rem)",
-              fontSize: "11px",
-            }}
-          >
-            Add to cart
-          </button>
+          {signedIn ? (
+            <button
+              onClick={() => addItem(compound, variant)}
+              className="bg-brand font-mono tracking-[0.3em] uppercase text-brand-foreground transition-all hover:shadow-[0_0_0_4px_oklch(0.82_0.15_210_/_0.18)]"
+              style={{
+                paddingInline: "clamp(1rem, 1.6vw, 1.4rem)",
+                paddingBlock: "clamp(0.75rem, 1vw, 1rem)",
+                fontSize: "11px",
+              }}
+            >
+              Add to cart
+            </button>
+          ) : (
+            <Link
+              href="/login"
+              className="border border-hairline font-mono tracking-[0.3em] uppercase text-foreground transition-colors hover:border-foreground"
+              style={{
+                paddingInline: "clamp(1rem, 1.6vw, 1.4rem)",
+                paddingBlock: "clamp(0.75rem, 1vw, 1rem)",
+                fontSize: "11px",
+              }}
+            >
+              Sign in
+            </Link>
+          )}
           <button
             onClick={next}
             aria-label="Next compound"

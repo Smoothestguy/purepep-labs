@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Fraunces, Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import AgeGate from "@/components/shared/age-gate";
+import { AuthProvider } from "@/components/shared/auth-provider";
 import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
 
@@ -75,7 +76,7 @@ export default function RootLayout({
           enableSystem={false}
           disableTransitionOnChange
         >
-          {children}
+          <AuthProvider>{children}</AuthProvider>
           <AgeGate />
           <Toaster position="bottom-right" />
         </ThemeProvider>

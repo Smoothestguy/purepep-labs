@@ -1,6 +1,6 @@
 import "server-only";
 
-import type { CheckoutShipping } from "./types";
+import type { CheckoutShipping } from "@/lib/checkout/types";
 import { transactUrl } from "./config";
 
 /**

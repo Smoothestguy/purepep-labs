@@ -2,7 +2,7 @@ import "server-only";
 
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { PricedLine } from "@/lib/pricing";
-import type { CheckoutShipping } from "@/lib/nmi/types";
+import type { CheckoutShipping } from "@/lib/checkout/types";
 import type { PaymentMethod } from "@/lib/payment-methods";
 
 /**
@@ -39,6 +39,9 @@ export type OrderRow = {
   failure_reason: string | null;
   payment_method: PaymentMethod;
   payment_reference: string | null;
+  stripe_session_id: string | null;
+  stripe_payment_intent: string | null;
+  amount_mismatch_cents: number | null;
   marked_paid_by: string | null;
   marked_paid_at: string | null;
   created_at: string;
@@ -80,6 +83,8 @@ export type CreateOrderInput = {
   shippingCents: number;
   totalCents: number;
   paymentMethod: PaymentMethod;
+  /** Processor handling this order: 'stripe', 'nmi', or null for manual. */
+  gateway: string | null;
 };
 
 /** Insert a 'pending' order. Throws if storage is unconfigured. */
@@ -102,7 +107,7 @@ export async function createPendingOrder(
       shipping_cents: input.shippingCents,
       total_cents: input.totalCents,
       payment_method: input.paymentMethod,
-      gateway: input.paymentMethod === "card" ? "nmi" : null,
+      gateway: input.gateway,
     })
     .select()
     .single();
@@ -152,6 +157,130 @@ export async function markOrderFailed(
     // Best-effort: the customer already saw the decline. Log rather than
     // throw so we don't mask the original payment failure.
     console.error("[orders] could not mark order failed:", error.message);
+  }
+}
+
+/**
+ * Record the Stripe session an order was handed off to.
+ *
+ * Written after the session exists but before the customer is redirected,
+ * so a payment that completes can always be traced back to its order even
+ * if the customer never returns to the success page.
+ */
+export async function attachStripeSession(
+  orderRef: string,
+  sessionId: string,
+): Promise<void> {
+  const supabase = createAdminClient();
+  if (!supabase) throw new OrdersUnavailableError();
+
+  const { error } = await supabase
+    .from("orders")
+    .update({ stripe_session_id: sessionId })
+    .eq("order_ref", orderRef);
+
+  if (error) {
+    throw new Error(`Failed to attach Stripe session: ${error.message}`);
+  }
+}
+
+export async function findOrderByStripeSession(
+  sessionId: string,
+): Promise<OrderRow | null> {
+  const supabase = createAdminClient();
+  if (!supabase) throw new OrdersUnavailableError();
+
+  const { data, error } = await supabase
+    .from("orders")
+    .select("*")
+    .eq("stripe_session_id", sessionId)
+    .maybeSingle();
+
+  if (error) throw new Error(`Failed to load order: ${error.message}`);
+  return (data as OrderRow | null) ?? null;
+}
+
+/**
+ * Settle a Stripe order from the webhook.
+ *
+ * Guarded on `status = 'pending'` and reports whether it actually moved
+ * the row. Stripe redelivers webhooks — on its own retry schedule, and
+ * again whenever someone replays an event from the dashboard — so this
+ * has to be idempotent. The boolean is what stops the customer receiving
+ * a fresh confirmation email on every redelivery.
+ *
+ * `amountMismatchCents` is set when Stripe's total disagreed with the
+ * total we priced. That should be impossible; recording it is cheaper
+ * than discovering it during a chargeback.
+ */
+export async function markOrderPaidByStripe(input: {
+  orderRef: string;
+  sessionId: string;
+  paymentIntentId: string | null;
+  amountMismatchCents?: number | null;
+  raw: unknown;
+}): Promise<{ transitioned: boolean; order: OrderRow | null }> {
+  const supabase = createAdminClient();
+  if (!supabase) throw new OrdersUnavailableError();
+
+  const { data, error } = await supabase
+    .from("orders")
+    .update({
+      status: "paid",
+      gateway: "stripe",
+      stripe_session_id: input.sessionId,
+      stripe_payment_intent: input.paymentIntentId,
+      gateway_txn_id: input.paymentIntentId,
+      gateway_response: input.raw,
+      amount_mismatch_cents: input.amountMismatchCents ?? null,
+    })
+    .eq("order_ref", input.orderRef)
+    .eq("status", "pending")
+    .select("*");
+
+  if (error) throw new Error(`Failed to mark order paid: ${error.message}`);
+
+  const rows = (data ?? []) as OrderRow[];
+  return { transitioned: rows.length > 0, order: rows[0] ?? null };
+}
+
+export async function findOrderByRef(orderRef: string): Promise<OrderRow | null> {
+  const supabase = createAdminClient();
+  if (!supabase) throw new OrdersUnavailableError();
+
+  const { data, error } = await supabase
+    .from("orders")
+    .select("*")
+    .eq("order_ref", orderRef)
+    .maybeSingle();
+
+  if (error) throw new Error(`Failed to load order: ${error.message}`);
+  return (data as OrderRow | null) ?? null;
+}
+
+/**
+ * Abandon a pending Stripe order whose session expired.
+ *
+ * Also guarded on 'pending': an expired-session event can arrive after a
+ * successful payment in edge cases, and it must never undo a paid order.
+ */
+export async function markStripeSessionExpired(
+  orderRef: string,
+): Promise<void> {
+  const supabase = createAdminClient();
+  if (!supabase) throw new OrdersUnavailableError();
+
+  const { error } = await supabase
+    .from("orders")
+    .update({
+      status: "cancelled",
+      failure_reason: "Stripe checkout session expired before payment.",
+    })
+    .eq("order_ref", orderRef)
+    .eq("status", "pending");
+
+  if (error) {
+    console.error("[orders] could not expire order:", error.message);
   }
 }
 

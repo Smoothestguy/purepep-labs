@@ -1,4 +1,5 @@
 import { Resend } from "resend";
+import { resolveSiteOrigin } from "@/lib/site-url";
 
 // Single-instance client — Resend SDK is lightweight and safe to reuse across
 // invocations. Env vars are read lazily so `next build` doesn't fail when
@@ -18,7 +19,10 @@ const FROM = process.env.EMAIL_FROM ?? "The Pure Pep <support@thepurepep.com>";
 // headers configured in next.config.ts. Vercel's default `must-revalidate`
 // header confuses some mail proxies; we override it for /images/* to use
 // immutable long-cache headers that Gmail / Apple Mail handle reliably.
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://thepurepep.com";
+// Shared resolver so mail and Stripe's return URLs can't disagree about
+// which origin this deployment is. The literal is a last resort: an email
+// with a broken logo is better than one that fails to render at all.
+const SITE_URL = resolveSiteOrigin() ?? "https://thepurepep.com";
 const LOGO_URL = `${SITE_URL}/images/PurePep_Label_email.png`;
 
 export async function sendWaitlistConfirmation(to: string): Promise<void> {
