@@ -72,6 +72,16 @@ export async function createCheckoutSession(
       customer_email: email,
       client_reference_id: orderRef,
 
+      // Pinned to card rather than letting Stripe pick methods dynamically.
+      //
+      // Dynamic selection reads the account's activated payment methods,
+      // which fails outright on an account that has none — and silently
+      // changes what customers are offered whenever that dashboard setting
+      // is edited. Pinning also keeps buy-now-pay-later providers off a
+      // research-chemical checkout: several carry their own restricted-goods
+      // policies, and inheriting a dispute from one is avoidable.
+      payment_method_types: ["card"],
+
       // AVS data is the cheapest fraud signal available on a card-not-present
       // sale, and this catalog is a chargeback magnet.
       billing_address_collection: "required",
