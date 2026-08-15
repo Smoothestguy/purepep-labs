@@ -52,7 +52,10 @@ export async function createCheckoutSession(
       quantity: item.quantity,
       price_data: {
         currency: CURRENCY,
-        unit_amount: item.unit_price_cents,
+        // The discounted unit price, not the list price. Stripe multiplies
+        // this by quantity, which is exactly how lib/pricing derived the
+        // order total — so the two agree to the cent.
+        unit_amount: item.charged_unit_price_cents,
         product_data: {
           name: `${item.name} · ${item.dose}`,
           description: `${item.accession} — for laboratory research use only. Not for human consumption.`,
@@ -113,14 +116,14 @@ export async function createCheckoutSession(
       // own total matches `order.totalCents` exactly — the webhook asserts
       // on that equality.
       shipping_options:
-        order.shippingCents > 0
+        order.chargedShippingCents > 0
           ? [
               {
                 shipping_rate_data: {
                   type: "fixed_amount",
                   display_name: "Cold-chain dispatch",
                   fixed_amount: {
-                    amount: order.shippingCents,
+                    amount: order.chargedShippingCents,
                     currency: CURRENCY,
                   },
                 },

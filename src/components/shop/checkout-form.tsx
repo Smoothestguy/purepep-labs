@@ -93,6 +93,70 @@ export function CheckoutForm({ methods, processor, defaultEmail }: Props) {
   // Never validated here — the server owns which codes exist. This only
   // carries what was typed.
   const [discountCode, setDiscountCode] = useState("");
+  const [applied, setApplied] = useState<{
+    code: string;
+    percent: number;
+  } | null>(null);
+  const [checkingCode, setCheckingCode] = useState(false);
+
+  /**
+   * Discount in dollars, mirroring the server's arithmetic exactly: the
+   * percentage hits each *unit* price and is rounded there before being
+   * multiplied by quantity. Rounding the line total instead would drift a
+   * cent on some quantities and show a figure we don't charge.
+   */
+  const discountAmount = useMemo(() => {
+    if (!applied) return 0;
+    const multiplier = (100 - applied.percent) / 100;
+
+    const grossCents =
+      items.reduce((sum, i) => sum + Math.round(i.price * 100) * i.quantity, 0) +
+      (subtotal > 0 ? SHIPPING_FLAT * 100 : 0);
+
+    const chargedCents =
+      items.reduce(
+        (sum, i) =>
+          sum + Math.round(Math.round(i.price * 100) * multiplier) * i.quantity,
+        0,
+      ) + Math.round((subtotal > 0 ? SHIPPING_FLAT * 100 : 0) * multiplier);
+
+    return (grossCents - chargedCents) / 100;
+  }, [applied, items, subtotal]);
+
+  const appliedForSummary = applied
+    ? { code: applied.code, amount: discountAmount }
+    : null;
+
+  async function checkCode() {
+    const raw = discountCode.trim();
+    if (!raw || checkingCode) return;
+
+    setCheckingCode(true);
+    try {
+      const res = await fetch("/api/discount/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: raw }),
+      });
+      const data = (await res.json()) as {
+        valid: boolean;
+        code?: string;
+        percent?: number;
+      };
+
+      if (data.valid && data.code && typeof data.percent === "number") {
+        setApplied({ code: data.code, percent: data.percent });
+        toast.success(`${data.code} applied — ${data.percent}% off.`);
+      } else {
+        setApplied(null);
+        toast.error("That discount code is not valid.");
+      }
+    } catch {
+      toast.error("Could not check that code. Try again.");
+    } finally {
+      setCheckingCode(false);
+    }
+  }
   const [shipping, setShipping] = useState<ShippingForm>(EMPTY_SHIPPING);
   const [submitting, setSubmitting] = useState(false);
   const [collectReady, setCollectReady] = useState(false);
@@ -393,15 +457,37 @@ export function CheckoutForm({ methods, processor, defaultEmail }: Props) {
           </Section>
 
           <Section title="§ C · Discount code">
-            <div className="max-w-sm">
-              <Field
-                id="discountCode"
-                label="Code (optional)"
-                autoComplete="off"
-                value={discountCode}
-                onChange={(v) => setDiscountCode(v)}
-                placeholder="Enter a code"
-              />
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+              <div className="flex-1">
+                <Field
+                  id="discountCode"
+                  label="Code (optional)"
+                  autoComplete="off"
+                  value={discountCode}
+                  onChange={(v) => {
+                    setDiscountCode(v);
+                    // Typing invalidates a previously applied code, so the
+                    // summary can't show a discount for a code no longer
+                    // in the box.
+                    if (applied) setApplied(null);
+                  }}
+                  placeholder="Enter a code"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={() => void checkCode()}
+                disabled={checkingCode || !discountCode.trim()}
+                className="shrink-0 border border-hairline font-mono tracking-[0.3em] uppercase text-foreground transition-colors hover:border-foreground disabled:cursor-not-allowed disabled:opacity-50"
+                style={{
+                  paddingInline: "clamp(1rem, 1.6vw, 1.4rem)",
+                  paddingBlock: "clamp(0.7rem, 0.95vw, 0.9rem)",
+                  fontSize: "clamp(10px, 0.3vw + 9px, 11px)",
+                  minHeight: "2.5rem",
+                }}
+              >
+                {checkingCode ? "Checking…" : "Apply"}
+              </button>
             </div>
             <p
               className="font-sans leading-relaxed text-muted-foreground"
@@ -410,8 +496,9 @@ export function CheckoutForm({ methods, processor, defaultEmail }: Props) {
                 fontSize: "clamp(11px, 0.3vw + 10px, 12.5px)",
               }}
             >
-              Applied when you place the order. An invalid code stops the order
-              rather than charging you full price.
+              {applied
+                ? `${applied.code} applied — ${applied.percent}% off your order, shipping included.`
+                : "Re-checked when you place the order. An invalid code stops the order rather than quietly charging full price."}
             </p>
           </Section>
 
@@ -531,13 +618,18 @@ export function CheckoutForm({ methods, processor, defaultEmail }: Props) {
             className="border-t border-hairline lg:hidden"
             style={{ paddingTop: "clamp(1.75rem, 3vw, 2.5rem)" }}
           >
-            <OrderSummary subtotal={subtotal} showDisclaimer={false} />
+            <OrderSummary
+              subtotal={subtotal}
+              showDisclaimer={false}
+              discount={appliedForSummary}
+            />
           </div>
         </div>
 
         <div>
           <OrderSummary
             subtotal={subtotal}
+            discount={appliedForSummary}
             cta={
               <button
                 id="pp-place-order"

@@ -1,8 +1,8 @@
 import type { NextRequest } from "next/server";
 import type { CheckoutResponse, CheckoutShipping } from "@/lib/checkout/types";
 import { chargeCard, isGatewayConfigured } from "@/lib/nmi/gateway";
-import { compOrder, priceOrder, type RequestedLine } from "@/lib/pricing";
-import { lookupCompCode } from "@/lib/discounts";
+import { applyDiscount, priceOrder, type RequestedLine } from "@/lib/pricing";
+import { lookupDiscount } from "@/lib/discounts";
 import {
   attachStripeSession,
   createPendingOrder,
@@ -163,9 +163,9 @@ export async function POST(request: NextRequest): Promise<Response> {
   // beyond "not that one".
   let order = priced.order;
   if (body.discountCode) {
-    const comp = lookupCompCode(body.discountCode);
-    if (!comp) return fail("That discount code is not valid.", 400);
-    order = compOrder(order, comp.code);
+    const discount = lookupDiscount(body.discountCode);
+    if (!discount) return fail("That discount code is not valid.", 400);
+    order = applyDiscount(order, discount);
   }
 
   const {
@@ -177,8 +177,10 @@ export async function POST(request: NextRequest): Promise<Response> {
     totalCents,
   } = order;
 
-  // A comped order has nothing to charge, so no processor is involved at
-  // all — whichever payment method was selected becomes irrelevant.
+  // A fully discounted order has nothing to charge, so no processor is
+  // involved at all — whichever payment method was selected is moot.
+  // Reachable only via a 100% code: the catalog's cheapest line is $5.99
+  // and quantities are clamped to 1–99, so pricing alone cannot reach zero.
   const comped = totalCents === 0;
 
   // ── Payment method must actually be switched on ──────────────────────

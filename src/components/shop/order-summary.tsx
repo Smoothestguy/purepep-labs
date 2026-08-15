@@ -18,15 +18,23 @@ type Props = {
   cta?: ReactNode;
   /** Override the default disclaimer if a page needs to hide it. */
   showDisclaimer?: boolean;
+  /**
+   * An applied discount, if any. `amount` is computed by the caller using
+   * the same per-unit rounding the server uses, so the figure shown here
+   * is the figure charged — not an approximation of it.
+   */
+  discount?: { code: string; amount: number } | null;
 };
 
 export function OrderSummary({
   subtotal,
   cta,
   showDisclaimer = true,
+  discount = null,
 }: Props) {
   const shipping = subtotal > 0 ? SHIPPING_FLAT : 0;
-  const total = subtotal + shipping;
+  const discountAmount = discount?.amount ?? 0;
+  const total = Math.max(0, subtotal + shipping - discountAmount);
 
   return (
     <aside
@@ -53,6 +61,17 @@ export function OrderSummary({
       >
         <SummaryRow label="Subtotal" value={`$${subtotal.toFixed(2)}`} />
         <SummaryRow label="Shipping" value={`$${shipping.toFixed(2)}`} />
+        {discount ? (
+          <div className="flex items-baseline justify-between gap-3 text-brand">
+            <dt className="uppercase tracking-[0.22em]">
+              Discount
+              <span className="ml-2 normal-case tracking-normal italic">
+                {discount.code}
+              </span>
+            </dt>
+            <dd>−${discountAmount.toFixed(2)}</dd>
+          </div>
+        ) : null}
         <SummaryRow
           label="Tax"
           value="$0.00"

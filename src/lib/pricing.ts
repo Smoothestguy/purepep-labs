@@ -46,16 +46,29 @@ export type PricedLine = {
   unit_price_cents: number;
   quantity: number;
   line_total_cents: number;
+  /**
+   * Unit price actually charged, after any discount. Equal to
+   * `unit_price_cents` when no code was applied.
+   *
+   * Kept alongside the list price rather than replacing it so an order row
+   * still records what the customer would have paid — needed to show a
+   * saving on the receipt, and to audit what a code gave away.
+   */
+  charged_unit_price_cents: number;
 };
 
 export type PricedOrder = {
   items: PricedLine[];
   subtotalCents: number;
   shippingCents: number;
-  /** Amount taken off the order. Zero unless a comp code was applied. */
+  /** Amount taken off the order. Zero unless a code was applied. */
   discountCents: number;
-  /** The comp code responsible, canonical spelling. Null when none. */
+  /** The code responsible, canonical spelling. Null when none. */
   discountCode: string | null;
+  /** Whole percent off. Zero when no code was applied. */
+  discountPercent: number;
+  /** Shipping actually charged, after any discount. */
+  chargedShippingCents: number;
   totalCents: number;
 };
 
@@ -112,6 +125,7 @@ export function priceOrder(requested: RequestedLine[]): PricingResult {
       unit_price_cents: unit,
       quantity,
       line_total_cents: unit * quantity,
+      charged_unit_price_cents: unit,
     });
   }
 
@@ -126,26 +140,56 @@ export function priceOrder(requested: RequestedLine[]): PricingResult {
       shippingCents,
       discountCents: 0,
       discountCode: null,
+      discountPercent: 0,
+      chargedShippingCents: shippingCents,
       totalCents: subtotalCents + shippingCents,
     },
   };
 }
 
 /**
- * Apply a full comp to an already-priced order.
+ * Apply a percentage discount to an already-priced order.
  *
- * Shipping is waived along with the goods — "100% off" that still bills
- * $18 for cold-chain dispatch is a support ticket, not a comp.
+ * The rounding here is load-bearing. Stripe computes a line as
+ * `unit_amount * quantity`, so the discount is applied to the *unit*
+ * price and rounded there, before multiplying — then our total is summed
+ * from those same rounded units. Discounting the line total instead would
+ * drift by a cent on some quantities, and the webhook asserts that
+ * Stripe's `amount_total` equals what we recorded.
  *
- * Returns a new order rather than mutating, so the undiscounted total
- * stays available to the caller for the audit trail.
+ * Shipping is discounted too. "15% off" that still bills full freight is
+ * a support ticket, and at 100% it makes the order properly free.
+ *
+ * Returns a new order; the caller keeps the undiscounted one for the
+ * audit trail.
  */
-export function compOrder(order: PricedOrder, code: string): PricedOrder {
+export function applyDiscount(
+  order: PricedOrder,
+  discount: { code: string; percent: number },
+): PricedOrder {
+  const multiplier = (100 - discount.percent) / 100;
+
+  const items = order.items.map((item) => {
+    const chargedUnit = Math.round(item.unit_price_cents * multiplier);
+    return { ...item, charged_unit_price_cents: chargedUnit };
+  });
+
+  const chargedSubtotal = items.reduce(
+    (sum, i) => sum + i.charged_unit_price_cents * i.quantity,
+    0,
+  );
+  const chargedShipping = Math.round(order.shippingCents * multiplier);
+  const totalCents = chargedSubtotal + chargedShipping;
+
   const gross = order.subtotalCents + order.shippingCents;
+
   return {
     ...order,
-    discountCents: gross,
-    discountCode: code,
-    totalCents: 0,
+    items,
+    discountCents: gross - totalCents,
+    discountCode: discount.code,
+    discountPercent: discount.percent,
+    chargedShippingCents: chargedShipping,
+    totalCents,
   };
 }
