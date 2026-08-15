@@ -52,6 +52,10 @@ export type PricedOrder = {
   items: PricedLine[];
   subtotalCents: number;
   shippingCents: number;
+  /** Amount taken off the order. Zero unless a comp code was applied. */
+  discountCents: number;
+  /** The comp code responsible, canonical spelling. Null when none. */
+  discountCode: string | null;
   totalCents: number;
 };
 
@@ -120,7 +124,28 @@ export function priceOrder(requested: RequestedLine[]): PricingResult {
       items,
       subtotalCents,
       shippingCents,
+      discountCents: 0,
+      discountCode: null,
       totalCents: subtotalCents + shippingCents,
     },
+  };
+}
+
+/**
+ * Apply a full comp to an already-priced order.
+ *
+ * Shipping is waived along with the goods — "100% off" that still bills
+ * $18 for cold-chain dispatch is a support ticket, not a comp.
+ *
+ * Returns a new order rather than mutating, so the undiscounted total
+ * stays available to the caller for the audit trail.
+ */
+export function compOrder(order: PricedOrder, code: string): PricedOrder {
+  const gross = order.subtotalCents + order.shippingCents;
+  return {
+    ...order,
+    discountCents: gross,
+    discountCode: code,
+    totalCents: 0,
   };
 }

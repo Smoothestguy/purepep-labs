@@ -90,6 +90,9 @@ export function CheckoutForm({ methods, processor, defaultEmail }: Props) {
   // Seeded from the account, but still editable — a shared lab inbox is a
   // legitimate place to want the receipt sent.
   const [email, setEmail] = useState(defaultEmail);
+  // Never validated here — the server owns which codes exist. This only
+  // carries what was typed.
+  const [discountCode, setDiscountCode] = useState("");
   const [shipping, setShipping] = useState<ShippingForm>(EMPTY_SHIPPING);
   const [submitting, setSubmitting] = useState(false);
   const [collectReady, setCollectReady] = useState(false);
@@ -159,6 +162,7 @@ export function CheckoutForm({ methods, processor, defaultEmail }: Props) {
       const payload: CheckoutRequest = {
         token,
         paymentMethod: chosen,
+        discountCode: discountCode.trim() || undefined,
         email: email.trim(),
         shipping: {
           ...shipping,
@@ -388,7 +392,30 @@ export function CheckoutForm({ methods, processor, defaultEmail }: Props) {
             </div>
           </Section>
 
-          <Section title="§ C · Payment">
+          <Section title="§ C · Discount code">
+            <div className="max-w-sm">
+              <Field
+                id="discountCode"
+                label="Code (optional)"
+                autoComplete="off"
+                value={discountCode}
+                onChange={(v) => setDiscountCode(v)}
+                placeholder="Enter a code"
+              />
+            </div>
+            <p
+              className="font-sans leading-relaxed text-muted-foreground"
+              style={{
+                marginTop: "clamp(0.6rem, 1vw, 0.85rem)",
+                fontSize: "clamp(11px, 0.3vw + 10px, 12.5px)",
+              }}
+            >
+              Applied when you place the order. An invalid code stops the order
+              rather than charging you full price.
+            </p>
+          </Section>
+
+          <Section title="§ D · Payment">
             {/* Method picker — only when there's an actual choice. */}
             {methods.length > 1 ? (
               <div

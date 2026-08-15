@@ -1,11 +1,13 @@
 import type { NextRequest } from "next/server";
 import type { CheckoutResponse, CheckoutShipping } from "@/lib/checkout/types";
 import { chargeCard, isGatewayConfigured } from "@/lib/nmi/gateway";
-import { priceOrder, type RequestedLine } from "@/lib/pricing";
+import { compOrder, priceOrder, type RequestedLine } from "@/lib/pricing";
+import { lookupCompCode } from "@/lib/discounts";
 import {
   attachStripeSession,
   createPendingOrder,
   generateOrderRef,
+  markOrderComped,
   markOrderFailed,
   markOrderPaid,
 } from "@/lib/orders";
@@ -63,6 +65,7 @@ type ParsedBody = {
   shipping: CheckoutShipping;
   lines: RequestedLine[];
   paymentMethod: PaymentMethod;
+  discountCode: string;
 };
 
 function parseBody(body: unknown): ParsedBody | null {
@@ -103,6 +106,7 @@ function parseBody(body: unknown): ParsedBody | null {
     shipping: r.shipping,
     lines,
     paymentMethod,
+    discountCode: isString(r.discountCode) ? r.discountCode : "",
   };
 }
 
@@ -151,7 +155,31 @@ export async function POST(request: NextRequest): Promise<Response> {
   // ── Authoritative pricing ────────────────────────────────────────────
   const priced = priceOrder(body.lines);
   if (!priced.ok) return fail(priced.error, 400);
-  const { items, subtotalCents, shippingCents, totalCents } = priced.order;
+
+  // ── Comp code ────────────────────────────────────────────────────────
+  //
+  // Validated here and nowhere else. The browser is told only whether the
+  // code worked, never which codes exist, so a rejected code leaks nothing
+  // beyond "not that one".
+  let order = priced.order;
+  if (body.discountCode) {
+    const comp = lookupCompCode(body.discountCode);
+    if (!comp) return fail("That discount code is not valid.", 400);
+    order = compOrder(order, comp.code);
+  }
+
+  const {
+    items,
+    subtotalCents,
+    shippingCents,
+    discountCents,
+    discountCode,
+    totalCents,
+  } = order;
+
+  // A comped order has nothing to charge, so no processor is involved at
+  // all — whichever payment method was selected becomes irrelevant.
+  const comped = totalCents === 0;
 
   // ── Payment method must actually be switched on ──────────────────────
   const method = body.paymentMethod;
@@ -161,11 +189,11 @@ export async function POST(request: NextRequest): Promise<Response> {
 
   const manual = isManual(method);
   const processor = cardProcessor();
-  const usingStripe = !manual && processor === "stripe";
+  const usingStripe = !comped && !manual && processor === "stripe";
 
   // Card-only preflight: refuse rather than fake an approval in production.
   const nmiReady = isGatewayConfigured();
-  if (!manual && processor === "nmi" && !nmiReady && !mockAllowed()) {
+  if (!comped && !manual && processor === "nmi" && !nmiReady && !mockAllowed()) {
     return fail(
       "Card payments are not available yet. Please contact us to place this order.",
       503,
@@ -198,7 +226,9 @@ export async function POST(request: NextRequest): Promise<Response> {
       shippingCents,
       totalCents,
       paymentMethod: method,
-      gateway: manual ? null : processor,
+      gateway: comped || manual ? null : processor,
+      discountCents,
+      discountCode,
     });
   } catch (err) {
     persisted = false;
@@ -213,6 +243,56 @@ export async function POST(request: NextRequest): Promise<Response> {
         503,
       );
     }
+  }
+
+  // ── Comped: settle immediately, nothing to charge ────────────────────
+  //
+  // Checked before the manual and card branches because a zero total makes
+  // both meaningless — there is no money to instruct anyone to send, and
+  // no amount to authorise.
+  if (comped) {
+    if (!persisted) {
+      return fail(
+        "We could not record your order. Please try again or contact us.",
+        503,
+      );
+    }
+
+    const { transitioned } = await markOrderComped(
+      orderRef,
+      discountCode as string,
+    );
+
+    if (transitioned) {
+      try {
+        await sendOrderConfirmation({
+          to: body.email,
+          orderRef,
+          items,
+          subtotalCents,
+          shippingCents,
+          totalCents,
+        });
+      } catch (err) {
+        console.error(
+          `[checkout] ${orderRef}: comp confirmation email failed:`,
+          err instanceof Error ? err.message : err,
+        );
+      }
+    }
+
+    console.info(
+      `[checkout] ${orderRef}: comped with "${discountCode}" (${discountCents}c waived).`,
+    );
+
+    return Response.json(
+      {
+        ok: true,
+        orderId: orderRef,
+        message: "Order confirmed — no payment required.",
+      } satisfies CheckoutResponse,
+      { status: 200 },
+    );
   }
 
   // ── Manual methods: no charge, just instructions ─────────────────────

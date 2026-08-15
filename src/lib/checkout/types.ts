@@ -39,6 +39,8 @@ export type CheckoutRequest = {
   total: number;
   /** Defaults to "card" when omitted. */
   paymentMethod?: "card" | "bank_transfer" | "crypto";
+  /** Optional comp code. Validated server-side; unknown codes are rejected. */
+  discountCode?: string;
 };
 
 export type CheckoutResponse =

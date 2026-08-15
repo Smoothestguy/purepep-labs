@@ -42,6 +42,8 @@ export type OrderRow = {
   stripe_session_id: string | null;
   stripe_payment_intent: string | null;
   amount_mismatch_cents: number | null;
+  discount_code: string | null;
+  discount_cents: number;
   marked_paid_by: string | null;
   marked_paid_at: string | null;
   created_at: string;
@@ -85,6 +87,8 @@ export type CreateOrderInput = {
   paymentMethod: PaymentMethod;
   /** Processor handling this order: 'stripe', 'nmi', or null for manual. */
   gateway: string | null;
+  discountCents: number;
+  discountCode: string | null;
 };
 
 /** Insert a 'pending' order. Throws if storage is unconfigured. */
@@ -108,6 +112,8 @@ export async function createPendingOrder(
       total_cents: input.totalCents,
       payment_method: input.paymentMethod,
       gateway: input.gateway,
+      discount_cents: input.discountCents,
+      discount_code: input.discountCode,
     })
     .select()
     .single();
@@ -158,6 +164,37 @@ export async function markOrderFailed(
     // throw so we don't mask the original payment failure.
     console.error("[orders] could not mark order failed:", error.message);
   }
+}
+
+/**
+ * Settle a fully comped order.
+ *
+ * No processor is involved — the total is zero, so there is nothing to
+ * charge and nothing to wait for. Guarded on 'pending' like the Stripe
+ * path so a double submit can't settle the same order twice, and the
+ * boolean tells the caller whether to send the confirmation email.
+ */
+export async function markOrderComped(
+  orderRef: string,
+  code: string,
+): Promise<{ transitioned: boolean }> {
+  const supabase = createAdminClient();
+  if (!supabase) throw new OrdersUnavailableError();
+
+  const { data, error } = await supabase
+    .from("orders")
+    .update({
+      status: "paid",
+      payment_reference: `comp:${code}`,
+      marked_paid_at: new Date().toISOString(),
+      marked_paid_by: "system:comp-code",
+    })
+    .eq("order_ref", orderRef)
+    .eq("status", "pending")
+    .select("order_ref");
+
+  if (error) throw new Error(`Failed to settle comped order: ${error.message}`);
+  return { transitioned: Boolean(data && data.length > 0) };
 }
 
 /**
