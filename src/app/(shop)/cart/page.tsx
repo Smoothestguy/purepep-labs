@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { CartContents } from "@/components/shop/cart-contents";
 
 export const metadata: Metadata = {
-  title: "Cart — PurePep Labs",
+  title: "Cart — The Pure Pep",
   description: "Review queued monographs before proceeding to checkout.",
 };
 

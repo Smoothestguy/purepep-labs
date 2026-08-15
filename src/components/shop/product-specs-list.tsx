@@ -1,15 +1,21 @@
 "use client";
 
-import type { Compound } from "@/lib/compounds";
+import type { Compound, Variant } from "@/lib/compounds";
 import { useSelectedVariant } from "./use-selected-variant";
 
-type Props = {
+/** Reads the URL-selected variant; wrap in `<Suspense>` (fallback:
+ * `<ProductSpecsListView>` with the default variant) so the page prerenders. */
+export function ProductSpecsList({ compound }: { compound: Compound }) {
+  const variant = useSelectedVariant(compound);
+  return <ProductSpecsListView compound={compound} variant={variant} />;
+}
+
+type ViewProps = {
   compound: Compound;
+  variant: Variant;
 };
 
-export function ProductSpecsList({ compound: c }: Props) {
-  const v = useSelectedVariant(c);
-
+export function ProductSpecsListView({ compound: c, variant: v }: ViewProps) {
   const rows: { k: string; v: React.ReactNode }[] = [
     {
       k: "Sequence",

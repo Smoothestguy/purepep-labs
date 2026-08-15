@@ -4,8 +4,8 @@ import { Suspense } from "react";
 import { ResetPasswordForm } from "@/components/shared/reset-password-form";
 
 export const metadata: Metadata = {
-  title: "Set a new password — PurePep Labs",
-  description: "Set a new password for your PurePep Labs research account.",
+  title: "Set a new password — The Pure Pep",
+  description: "Set a new password for your The Pure Pep research account.",
   robots: { index: false, follow: false },
 };
 

@@ -5,7 +5,7 @@ import { ProductGrid } from "@/components/shop/product-grid";
 import { CategoryTabs } from "@/components/shop/category-tabs";
 
 export const metadata: Metadata = {
-  title: "Catalog — PurePep Labs",
+  title: "Catalog — The Pure Pep",
   description:
     "Eight live-maintained peptide monographs. HPLC-verified, lot-traceable, shipped with a third-party Certificate of Analysis.",
 };

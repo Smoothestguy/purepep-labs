@@ -438,6 +438,20 @@ const COMPOUND_PHOTO: Record<string, string> = {
   tesamorelin: "Tesamorelin-5mg.png",
   epitalon: "Epitalon-10mg.png",
   "mots-c": "MOTSc.png",
+  wolverine: "wolverine.png",
+  "cjc-1295-ipamorelin": "cjc-1295-ipamorelin.png",
+  retatrutide: "retatrutide.png",
+  tirzepatide: "tirzepatide.png",
+  "glow-70": "glow-70.png",
+  ipamorelin: "ipamorelin.png",
+  kpv: "kpv.png",
+  mazdutide: "mazdutide.png",
+  "5-amino-1mq": "5-amino-1mq.png",
+  glutathione: "glutathione.png",
+  "pt-141": "pt-141.png",
+  "melanotan-2": "melanotan-2.png",
+  "bac-water": "bac-water.png",
+  "igf-1-lr3": "igf-1-lr3.png",
 };
 
 export function compoundHasPhoto(c: Compound): boolean {

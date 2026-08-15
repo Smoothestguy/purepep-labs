@@ -2,16 +2,17 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import type { Compound } from "@/lib/compounds";
-import { useSelectedVariant } from "./use-selected-variant";
 
 type Props = {
   compound: Compound;
+  /** Currently selected dose, lifted to the parent so this picker never reads
+   * `useSearchParams` itself — keeps it prerenderable inside a Suspense fallback. */
+  selectedDose: string;
 };
 
-export function VariantPicker({ compound: c }: Props) {
+export function VariantPicker({ compound: c, selectedDose }: Props) {
   const router = useRouter();
   const pathname = usePathname();
-  const selected = useSelectedVariant(c);
 
   if (c.variants.length <= 1) return null;
 
@@ -30,7 +31,7 @@ export function VariantPicker({ compound: c }: Props) {
         aria-label="Select dose"
       >
         {c.variants.map((v) => {
-          const active = v.dose === selected.dose;
+          const active = v.dose === selectedDose;
           return (
             <button
               key={v.dose}

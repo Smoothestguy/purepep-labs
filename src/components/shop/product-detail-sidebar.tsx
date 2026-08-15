@@ -1,17 +1,29 @@
 "use client";
 
-import type { Compound } from "@/lib/compounds";
+import type { Compound, Variant } from "@/lib/compounds";
 import { BuyButton } from "./buy-button";
 import { CompoundVial } from "./compound-vial";
 import { VariantPicker } from "./variant-picker";
 import { useSelectedVariant } from "./use-selected-variant";
+import { LockedPrice, PricePlaceholder, usePriceVisibility } from "./price";
 
-type Props = {
+/**
+ * Reads the URL-selected variant. This is the only piece that touches
+ * `useSearchParams`, so the page wraps it in a `<Suspense>` boundary and
+ * renders `<ProductSidebarView>` (default variant) as the prerendered fallback.
+ */
+export function ProductDetailSidebar({ compound }: { compound: Compound }) {
+  const variant = useSelectedVariant(compound);
+  return <ProductSidebarView compound={compound} variant={variant} />;
+}
+
+type ViewProps = {
   compound: Compound;
+  variant: Variant;
 };
 
-export function ProductDetailSidebar({ compound }: Props) {
-  const variant = useSelectedVariant(compound);
+export function ProductSidebarView({ compound, variant }: ViewProps) {
+  const { visible: priceVisible, loading: priceLoading } = usePriceVisibility();
 
   return (
     <div
@@ -25,7 +37,7 @@ export function ProductDetailSidebar({ compound }: Props) {
     >
       <CompoundVial compound={compound} variant={variant} />
 
-      <VariantPicker compound={compound} />
+      <VariantPicker compound={compound} selectedDose={variant.dose} />
 
       {/* Specifications card */}
       <div
@@ -81,18 +93,24 @@ export function ProductDetailSidebar({ compound }: Props) {
           >
             Price
           </div>
-          <div
-            className="flex items-baseline gap-1 font-display leading-none tracking-tight text-foreground"
-            style={{ fontSize: "clamp(2.5rem, 5vw, 4rem)" }}
-          >
-            <span
-              className="font-mono tracking-[0.25em] uppercase text-muted-foreground"
-              style={{ fontSize: "clamp(10px, 0.25vw + 9px, 11px)" }}
+          {priceVisible ? (
+            <div
+              className="flex items-baseline gap-1 font-display leading-none tracking-tight text-foreground"
+              style={{ fontSize: "clamp(2.5rem, 5vw, 4rem)" }}
             >
-              USD
-            </span>
-            <span>${variant.price}</span>
-          </div>
+              <span
+                className="font-mono tracking-[0.25em] uppercase text-muted-foreground"
+                style={{ fontSize: "clamp(10px, 0.25vw + 9px, 11px)" }}
+              >
+                USD
+              </span>
+              <span>${variant.price}</span>
+            </div>
+          ) : priceLoading ? (
+            <PricePlaceholder fontSize="clamp(12px, 0.3vw + 11px, 14px)" />
+          ) : (
+            <LockedPrice fontSize="clamp(10px, 0.3vw + 9px, 11px)" />
+          )}
         </div>
 
         <div style={{ marginTop: "clamp(1.1rem, 1.5vw, 1.4rem)" }}>

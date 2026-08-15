@@ -9,12 +9,14 @@ import {
   compoundPhotoSrc,
 } from "@/lib/compounds";
 import { CompoundLabel } from "./compound-label";
+import { LockedPrice, PricePlaceholder, usePriceVisibility } from "./price";
 
 type Props = {
   compound: Compound;
 };
 
 export function ProductCard({ compound: c }: Props) {
+  const { visible: priceVisible, loading: priceLoading } = usePriceVisibility();
   const [selectedIdx, setSelectedIdx] = useState(0);
   const variant = c.variants[selectedIdx];
   const hasMulti = c.variants.length > 1;
@@ -193,18 +195,27 @@ export function ProductCard({ compound: c }: Props) {
           <span className="text-foreground">{variant.inStock}</span>
           <span className="text-muted-foreground">in stock</span>
         </div>
-        <div
-          className="flex items-baseline gap-1 font-display leading-none tracking-tight text-foreground"
-          style={{ fontSize: "clamp(1.6rem, 2.4vw, 2.1rem)" }}
-        >
-          <span
-            className="font-mono tracking-[0.25em] uppercase text-muted-foreground"
-            style={{ fontSize: "clamp(9px, 0.2vw + 8.5px, 10px)" }}
+        {priceVisible ? (
+          <div
+            className="flex items-baseline gap-1 font-display leading-none tracking-tight text-foreground"
+            style={{ fontSize: "clamp(1.6rem, 2.4vw, 2.1rem)" }}
           >
-            USD
-          </span>
-          <span>${variant.price}</span>
-        </div>
+            <span
+              className="font-mono tracking-[0.25em] uppercase text-muted-foreground"
+              style={{ fontSize: "clamp(9px, 0.2vw + 8.5px, 10px)" }}
+            >
+              USD
+            </span>
+            <span>${variant.price}</span>
+          </div>
+        ) : priceLoading ? (
+          <PricePlaceholder fontSize="clamp(10px, 0.3vw + 9px, 11px)" />
+        ) : (
+          <LockedPrice
+            fontSize="clamp(9px, 0.25vw + 8px, 10.5px)"
+            next={href}
+          />
+        )}
       </div>
     </article>
   );

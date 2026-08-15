@@ -1,8 +1,10 @@
 /**
- * Types for NMI's CollectJS tokenization library + our internal
- * /api/checkout request/response contract. We type the global shape
+ * Types for NMI's CollectJS tokenization library. We type the global shape
  * minimally — enough to call `configure` and `startPaymentRequest`,
  * without leaning on an `@types/collectjs` package that does not exist.
+ *
+ * The /api/checkout contract lives in `lib/checkout/types`; it is not
+ * NMI-specific and outlived this integration's turn as the card handler.
  */
 
 export type CollectJSTokenResponse = {
@@ -53,37 +55,3 @@ declare global {
     CollectJS?: CollectJSGlobal;
   }
 }
-
-// ── Internal /api/checkout contract ──────────────────────────────────
-
-export type CheckoutShipping = {
-  firstName: string;
-  lastName: string;
-  address1: string;
-  address2?: string;
-  city: string;
-  state: string;
-  zip: string;
-  phone: string;
-};
-
-export type CheckoutLineItem = {
-  slug: string;
-  accession: string;
-  name: string;
-  dose: string;
-  price: number;
-  quantity: number;
-};
-
-export type CheckoutRequest = {
-  token: string; // CollectJS one-time token, or "MOCK" in demo mode
-  email: string;
-  shipping: CheckoutShipping;
-  items: CheckoutLineItem[];
-  total: number;
-};
-
-export type CheckoutResponse =
-  | { ok: true; orderId: string; message: string }
-  | { ok: false; error: string };

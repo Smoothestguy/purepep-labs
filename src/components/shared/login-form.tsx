@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
+import { safeRedirectTarget } from "@/lib/auth/redirect-target";
 
 const inputClasses =
   "min-w-0 flex-1 bg-transparent font-mono tracking-[0.05em] text-foreground placeholder:text-muted-foreground/60 focus:outline-none";
@@ -46,10 +47,7 @@ export function LoginForm() {
         }
 
         toast.success("Signed in.");
-        const raw = searchParams.get("redirect");
-        const redirectTo =
-          raw && raw.startsWith("/") && !raw.startsWith("//") ? raw : "/shop";
-        router.push(redirectTo);
+        router.push(safeRedirectTarget(searchParams.get("redirect")));
         router.refresh();
       } catch (err) {
         const message =

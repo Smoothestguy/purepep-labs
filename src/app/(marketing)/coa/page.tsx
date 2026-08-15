@@ -3,7 +3,7 @@ import { compounds, defaultVariant } from "@/lib/compounds";
 import { CoaArchive, type CoaRow } from "./coa-archive";
 
 export const metadata: Metadata = {
-  title: "Certificates of analysis — PurePep Labs",
+  title: "Certificates of analysis — The Pure Pep",
   description:
     "Third-party Certificates of Analysis for every lot we've shipped. Indexed, signed, and publicly verifiable.",
   alternates: { canonical: "/coa" },
@@ -145,7 +145,7 @@ const METHODOLOGY: Array<{
 const GLOSSARY: Array<{ term: string; def: string }> = [
   {
     term: "Accession",
-    def: "PurePep internal compound identifier (e.g. PP-002). Stable across lots.",
+    def: "The Pure Pep internal compound identifier (e.g. PP-002). Stable across lots.",
   },
   {
     term: "Lot",

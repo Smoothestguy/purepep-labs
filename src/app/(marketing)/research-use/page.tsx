@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Research-use policy — PurePep Labs",
+  title: "Research-use policy — The Pure Pep",
   description:
-    "The attestations and restrictions that govern purchase of compounds from PurePep Labs. Template — review with counsel before launch.",
+    "The attestations and restrictions that govern purchase of compounds from The Pure Pep. Template — review with counsel before launch.",
   alternates: { canonical: "/research-use" },
 };
 
@@ -68,8 +68,8 @@ export default function ResearchUsePage() {
                 eyebrow="02 · Prohibited uses"
                 title="Humans, animals, resale, re-export."
                 paragraphs={[
-                  "Compounds dispatched by PurePep Labs must not be administered to human subjects, including the purchaser or consenting adults. They must not be administered to vertebrate or invertebrate animals outside a protocol approved by a recognised institutional review or animal-care committee.",
-                  "Compounds must not be resold, redistributed, relabelled, or combined into finished preparations for any third party. Re-export outside the country of delivery without written consent from PurePep Labs is strictly prohibited and may constitute a separate violation of U.S. export law.",
+                  "Compounds dispatched by The Pure Pep must not be administered to human subjects, including the purchaser or consenting adults. They must not be administered to vertebrate or invertebrate animals outside a protocol approved by a recognised institutional review or animal-care committee.",
+                  "Compounds must not be resold, redistributed, relabelled, or combined into finished preparations for any third party. Re-export outside the country of delivery without written consent from The Pure Pep is strictly prohibited and may constitute a separate violation of U.S. export law.",
                 ]}
               />
 
@@ -102,7 +102,7 @@ export default function ResearchUsePage() {
                 eyebrow="06 · Reporting"
                 title="If you suspect misuse."
                 paragraphs={[
-                  "If you believe a PurePep Labs compound is being diverted, relabelled, or administered outside laboratory research, write to research-integrity@[placeholder-domain]. Reports may be submitted anonymously. Credible information is reviewed by the laboratory director within three business days.",
+                  "If you believe a The Pure Pep compound is being diverted, relabelled, or administered outside laboratory research, write to research-integrity@[placeholder-domain]. Reports may be submitted anonymously. Credible information is reviewed by the laboratory director within three business days.",
                 ]}
               />
             </div>

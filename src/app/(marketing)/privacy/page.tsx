@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Privacy policy — PurePep Labs",
+  title: "Privacy policy — The Pure Pep",
   description:
-    "How PurePep Labs, LLC collects, uses, and retains researcher and order data. Template — review with counsel before launch.",
+    "How The Pure Pep, LLC collects, uses, and retains researcher and order data. Template — review with counsel before launch.",
   alternates: { canonical: "/privacy" },
 };
 
@@ -116,7 +116,7 @@ export default function PrivacyPage() {
                 eyebrow="08 · Contact"
                 title="Write to the laboratory."
                 paragraphs={[
-                  "Questions, requests, or complaints may be directed to: PurePep Labs, LLC — Privacy Office, [street address], Houston, Texas [ZIP], United States, or privacy@[placeholder-domain].",
+                  "Questions, requests, or complaints may be directed to: The Pure Pep, LLC — Privacy Office, [street address], Houston, Texas [ZIP], United States, or privacy@[placeholder-domain].",
                 ]}
               />
             </div>
