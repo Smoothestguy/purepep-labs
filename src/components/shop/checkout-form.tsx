@@ -44,6 +44,12 @@ type Props = {
   methods: PaymentMethod[];
   /** Which processor handles a card payment. */
   processor: "stripe" | "nmi";
+  /**
+   * The signed-in account's email, used to seed the contact field.
+   * Ordering requires an account, so the server always knows this —
+   * asking the customer to retype it is pure friction.
+   */
+  defaultEmail: string;
 };
 
 /**
@@ -57,7 +63,7 @@ type Props = {
  * iframes here and tokenises before submit — or, with no tokenization key,
  * a clearly-labelled mock banner is shown and the form submits `MOCK`.
  */
-export function CheckoutForm({ methods, processor }: Props) {
+export function CheckoutForm({ methods, processor, defaultEmail }: Props) {
   const router = useRouter();
   const { items, subtotal, clear, hydrated } = useCart();
 
@@ -81,7 +87,9 @@ export function CheckoutForm({ methods, processor }: Props) {
     methodRef.current = method;
   }, [method]);
 
-  const [email, setEmail] = useState("");
+  // Seeded from the account, but still editable — a shared lab inbox is a
+  // legitimate place to want the receipt sent.
+  const [email, setEmail] = useState(defaultEmail);
   const [shipping, setShipping] = useState<ShippingForm>(EMPTY_SHIPPING);
   const [submitting, setSubmitting] = useState(false);
   const [collectReady, setCollectReady] = useState(false);

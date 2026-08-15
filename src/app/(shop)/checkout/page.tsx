@@ -85,7 +85,11 @@ export default async function CheckoutPage({
       </div>
 
       {user ? (
-        <CheckoutForm methods={enabledMethods()} processor={cardProcessor()} />
+        <CheckoutForm
+          methods={enabledMethods()}
+          processor={cardProcessor()}
+          defaultEmail={user.email}
+        />
       ) : (
         <SignInGate />
       )}
