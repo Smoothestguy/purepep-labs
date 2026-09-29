@@ -10,7 +10,7 @@ import { AuthButton } from "@/components/shared/auth-button";
 const nav = [
   { href: "/shop", label: "Catalog" },
   { href: "/#science", label: "Science" },
-  { href: "/coa", label: "Documentation" },
+  { href: "/coa", label: "COAs" },
 ];
 
 export function SiteHeader() {

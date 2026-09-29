@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import type { Compound } from "@/lib/compounds";
 import {
-  slugify,
+  compoundSlug,
   compoundHasPhoto,
   compoundPhotoSrc,
 } from "@/lib/compounds";
@@ -22,7 +22,7 @@ export function ProductCard({ compound: c }: Props) {
   const hasMulti = c.variants.length > 1;
   const hasPhoto = compoundHasPhoto(c);
 
-  const slug = slugify(c.name);
+  const slug = compoundSlug(c);
   const href = hasMulti
     ? `/product/${slug}?dose=${encodeURIComponent(variant.dose)}`
     : `/product/${slug}`;

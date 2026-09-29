@@ -15,7 +15,8 @@ import type {
   CheckoutResponse,
   CheckoutShipping,
 } from "@/lib/checkout/types";
-import { OrderSummary, SHIPPING_FLAT } from "./order-summary";
+import { OrderSummary } from "./order-summary";
+import { shippingFor } from "@/lib/pricing";
 import {
   METHOD_BLURB,
   METHOD_LABEL,
@@ -111,14 +112,14 @@ export function CheckoutForm({ methods, processor, defaultEmail }: Props) {
 
     const grossCents =
       items.reduce((sum, i) => sum + Math.round(i.price * 100) * i.quantity, 0) +
-      (subtotal > 0 ? SHIPPING_FLAT * 100 : 0);
+      shippingFor(subtotal) * 100;
 
     const chargedCents =
       items.reduce(
         (sum, i) =>
           sum + Math.round(Math.round(i.price * 100) * multiplier) * i.quantity,
         0,
-      ) + Math.round((subtotal > 0 ? SHIPPING_FLAT * 100 : 0) * multiplier);
+      ) + Math.round(shippingFor(subtotal) * 100 * multiplier);
 
     return (grossCents - chargedCents) / 100;
   }, [applied, items, subtotal]);
@@ -163,7 +164,7 @@ export function CheckoutForm({ methods, processor, defaultEmail }: Props) {
   const [collectError, setCollectError] = useState<string | null>(null);
 
   const total = useMemo(
-    () => (subtotal > 0 ? subtotal + SHIPPING_FLAT : 0),
+    () => (subtotal > 0 ? subtotal + shippingFor(subtotal) : 0),
     [subtotal],
   );
 

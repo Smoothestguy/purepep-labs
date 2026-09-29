@@ -134,6 +134,24 @@ export function SiteFooter() {
           <div>For research use only · Not for human consumption</div>
         </div>
 
+        {/* FDA disclaimer — standard for research-chemical suppliers, and
+            every comparable supplier carries one. */}
+        <p
+          className="mx-auto max-w-3xl text-center font-sans leading-relaxed text-muted-foreground/70"
+          style={{
+            marginTop: "clamp(1.25rem, 2vw, 1.75rem)",
+            fontSize: "clamp(10px, 0.25vw + 9px, 11.5px)",
+          }}
+        >
+          These statements have not been evaluated by the Food and Drug
+          Administration. Products sold by The Pure Pep are intended for
+          laboratory research use only and are not drugs, foods, cosmetics, or
+          supplements. They are not intended to diagnose, treat, cure, or
+          prevent any disease, and are not for human or veterinary
+          consumption. Sale is restricted to qualified researchers and
+          institutions.
+        </p>
+
         <div className="mt-6 flex justify-center">
           <Image
             src="/images/PurePep_Label.png"

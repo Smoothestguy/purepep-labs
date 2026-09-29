@@ -169,7 +169,7 @@ export function Hero() {
                 className="size-1.5 rounded-full"
                 style={{ background: "oklch(0.82 0.15 210)" }}
               />
-              View documentation
+              View COAs
             </Link>
           </div>
 

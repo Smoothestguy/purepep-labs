@@ -16,6 +16,12 @@ export type Variant = {
 export type Compound = {
   accession: string;
   name: string;
+  /**
+   * URL and photo key. Defaults to the slugified name; pin it explicitly
+   * when a display name changes so existing links, product images and
+   * saved carts keep resolving.
+   */
+  slug?: string;
   codename: string;
   sequence: string;
   molecularWeight: number;
@@ -116,13 +122,13 @@ export const compounds: Compound[] = [
   {
     accession: "PP-006",
     name: "Tesamorelin",
-    codename: "Growth-Hormone Releasing Factor",
-    sequence: "44 aa (hGRF analogue)",
+    codename: "44-Residue Peptide Analogue",
+    sequence: "44 aa",
     molecularWeight: 5135.85,
     purity: 99.03,
     category: "metabolic",
-    family: "GHRH analogue",
-    blurb: "Stabilised GHRH(1-44) analogue. Amber glass, N₂ headspace.",
+    family: "Peptide analogue",
+    blurb: "Stabilised 44-residue peptide analogue. Amber glass, N₂ headspace.",
     variants: [
       { dose: "10 mg", price: 49.99, inStock: 42, lot: "D-2207", coaDate: "2026-03-28" },
       { dose: "20 mg", price: 84.99, inStock: 36, lot: "D-2207", coaDate: "2026-03-28" },
@@ -164,15 +170,18 @@ export const compounds: Compound[] = [
   // PLACEHOLDER_REVIEW
   {
     accession: "PP-009",
-    name: "BAC Water",
-    codename: "Bacteriostatic Water",
+    name: "Reconstitution Solution",
+    // Renamed from "BAC Water"; slug pinned so the existing URL, the
+    // product photo key and any saved carts keep resolving.
+    slug: "bac-water",
+    codename: "0.9% Benzyl Alcohol Diluent",
     sequence: "TBD",
     molecularWeight: 0,
     purity: 99,
     category: "structural",
     family: "Diluent",
     blurb:
-      "Sterile bacteriostatic water for reconstitution. 0.9% benzyl alcohol.",
+      "Sterile solution for reconstituting lyophilised material. 0.9% benzyl alcohol.",
     variants: [
       { dose: "10 mL", price: 5.99, inStock: 500, lot: "TBD", coaDate: "TBD" },
     ],
@@ -199,12 +208,12 @@ export const compounds: Compound[] = [
   {
     accession: "PP-011",
     name: "CJC-1295 Ipamorelin",
-    codename: "GHRH / GHRP Blend",
+    codename: "Dual Peptide Blend",
     sequence: "TBD",
     molecularWeight: 0,
     purity: 99,
     category: "metabolic",
-    family: "GHRH/GHRP blend",
+    family: "Peptide blend",
     blurb: "CJC-1295 (no-DAC) paired with Ipamorelin. Co-lyophilised.",
     variants: [
       { dose: "5 mg + 5 mg", price: 49.99, inStock: 140, lot: "TBD", coaDate: "TBD" },
@@ -266,13 +275,13 @@ export const compounds: Compound[] = [
   {
     accession: "PP-015",
     name: "Ipamorelin",
-    codename: "Selective GHRP",
+    codename: "Selective Pentapeptide",
     sequence: "TBD",
     molecularWeight: 0,
     purity: 99,
     category: "metabolic",
-    family: "GHRP",
-    blurb: "Selective growth-hormone releasing peptide. Pentapeptide.",
+    family: "Pentapeptide",
+    blurb: "Selective synthetic pentapeptide. Lyophilised.",
     variants: [
       { dose: "10 mg", price: 39.99, inStock: 150, lot: "TBD", coaDate: "TBD" },
     ],
@@ -403,8 +412,17 @@ export function slugify(name: string): string {
   return name.toLowerCase().replaceAll(/\s+/g, "-");
 }
 
+/**
+ * The canonical slug for a compound: its pinned `slug` when it has one,
+ * otherwise the slugified name. Always use this rather than calling
+ * slugify on the name directly, or a renamed product loses its URL.
+ */
+export function compoundSlug(c: Compound): string {
+  return c.slug ?? slugify(c.name);
+}
+
 export function compoundBySlug(slug: string): Compound | undefined {
-  return compounds.find((c) => slugify(c.name) === slug);
+  return compounds.find((c) => compoundSlug(c) === slug);
 }
 
 /** First variant — used as the default surfaced on the catalog card. */
@@ -455,10 +473,10 @@ const COMPOUND_PHOTO: Record<string, string> = {
 };
 
 export function compoundHasPhoto(c: Compound): boolean {
-  return slugify(c.name) in COMPOUND_PHOTO;
+  return compoundSlug(c) in COMPOUND_PHOTO;
 }
 
 export function compoundPhotoSrc(c: Compound): string {
-  const file = COMPOUND_PHOTO[slugify(c.name)];
+  const file = COMPOUND_PHOTO[compoundSlug(c)];
   return file ? `/images/compounds/${file}` : "/images/vial-base.png";
 }

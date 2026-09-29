@@ -13,11 +13,33 @@ import { compoundBySlug } from "@/lib/compounds";
  * can POST `total: 0.01` and buy the catalog.
  */
 
-/** Flat-rate cold-chain shipping, in dollars. */
-export const SHIPPING_FLAT = 18;
+/** Cold-chain shipping charged below the free-shipping threshold, in dollars. */
+export const SHIPPING_FLAT = 10;
 
-/** Flat-rate cold-chain shipping, in cents. */
+/** Same, in cents. */
 export const SHIPPING_FLAT_CENTS = SHIPPING_FLAT * 100;
+
+/** Orders whose subtotal reaches this ship free. */
+export const FREE_SHIPPING_THRESHOLD = 150;
+
+/** Same, in cents. */
+export const FREE_SHIPPING_THRESHOLD_CENTS = FREE_SHIPPING_THRESHOLD * 100;
+
+/**
+ * Shipping for a subtotal, in cents. The threshold is tested against the
+ * subtotal *before* any discount, so a code can never quietly cost the
+ * customer their free shipping.
+ */
+export function shippingCentsFor(subtotalCents: number): number {
+  if (subtotalCents <= 0) return 0;
+  return subtotalCents >= FREE_SHIPPING_THRESHOLD_CENTS ? 0 : SHIPPING_FLAT_CENTS;
+}
+
+/** The same rule in dollars, for the cart and checkout summaries. */
+export function shippingFor(subtotalDollars: number): number {
+  if (subtotalDollars <= 0) return 0;
+  return subtotalDollars >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_FLAT;
+}
 
 /** Upper bound per line item — a sanity guard, not a stock check. */
 const MAX_QUANTITY_PER_LINE = 99;
@@ -130,7 +152,7 @@ export function priceOrder(requested: RequestedLine[]): PricingResult {
   }
 
   const subtotalCents = items.reduce((sum, i) => sum + i.line_total_cents, 0);
-  const shippingCents = subtotalCents > 0 ? SHIPPING_FLAT_CENTS : 0;
+  const shippingCents = shippingCentsFor(subtotalCents);
 
   return {
     ok: true,

@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 import {
   compounds,
   compoundBySlug,
-  slugify,
+  compoundSlug,
   type Compound,
 } from "@/lib/compounds";
 import { ProductCard } from "@/components/shop/product-card";
@@ -22,7 +22,7 @@ import { defaultVariant } from "@/lib/compounds";
 type Params = Promise<{ slug: string }>;
 
 export function generateStaticParams() {
-  return compounds.map((c) => ({ slug: slugify(c.name) }));
+  return compounds.map((c) => ({ slug: compoundSlug(c) }));
 }
 
 export async function generateMetadata({
@@ -59,7 +59,7 @@ function monographParagraphs(c: Compound): string[] {
     structural: [
       `${c.blurb} Isolated for its structural simplicity and synthetic accessibility, ${c.name} is produced as a lyophilised solid and sealed under inert atmosphere.`,
       `Every batch moves through the full Six-Step protocol — solid-phase Fmoc synthesis, TFA cleavage, reverse-phase HPLC purification, and ESI-TOF mass-spec confirmation. The lot shipped carries ≥ ${c.purity}% HPLC-MS purity with residual solvent and endotoxin assays signed by an independent laboratory.`,
-      `Lyophilised vials are stable at −20 °C in their sealed amber container. In bacteriostatic water, HPLC-verified purity holds for approximately four weeks under refrigeration; single-thaw only.`,
+      `Lyophilised vials are stable at −20 °C in their sealed amber container. In reconstitution solution, HPLC-verified purity holds for approximately four weeks under refrigeration; single-thaw only.`,
     ],
     metabolic: [
       `${c.blurb} ${c.name} belongs to the ${c.family.toLowerCase()} class and is prepared at a ${defaultVariant(c).dose} fill per vial for laboratory titration work.`,
@@ -231,8 +231,11 @@ export default async function ProductPage({
             </div>
           </div>
 
-          {/* RIGHT — vial + specs + buy (variant-aware client island) */}
-          <div className="lg:col-span-5">
+          {/* RIGHT — vial + specs + buy (variant-aware client island).
+              order-first puts the buy panel above the monograph on mobile so
+              "Add to cart" is reachable without scrolling; the two-column
+              desktop layout is unchanged. */}
+          <div className="order-first lg:order-none lg:col-span-5">
             <Suspense
               fallback={
                 <ProductSidebarView

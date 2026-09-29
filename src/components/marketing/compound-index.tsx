@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { compounds, defaultVariant, slugify } from "@/lib/compounds";
+import { compounds, compoundSlug, defaultVariant } from "@/lib/compounds";
 import { GatedPrice } from "@/components/shop/price";
 
 export function CompoundIndex() {
@@ -92,7 +92,7 @@ export function CompoundIndex() {
           return (
           <Link
             key={c.accession}
-            href={`/product/${slugify(c.name)}`}
+            href={`/product/${compoundSlug(c)}`}
             className="group block border-b border-hairline transition-colors hover:bg-surface/60"
           >
             {/* MOBILE stack */}

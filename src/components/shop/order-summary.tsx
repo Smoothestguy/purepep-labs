@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { SHIPPING_FLAT } from "@/lib/pricing";
+import { FREE_SHIPPING_THRESHOLD, SHIPPING_FLAT, shippingFor } from "@/lib/pricing";
 
 // Re-exported for existing importers; the value itself lives in lib/pricing
 // so the server's authoritative total and this display can never drift.
@@ -32,7 +32,11 @@ export function OrderSummary({
   showDisclaimer = true,
   discount = null,
 }: Props) {
-  const shipping = subtotal > 0 ? SHIPPING_FLAT : 0;
+  const shipping = shippingFor(subtotal);
+  const awayFromFree =
+    subtotal > 0 && subtotal < FREE_SHIPPING_THRESHOLD
+      ? FREE_SHIPPING_THRESHOLD - subtotal
+      : 0;
   const discountAmount = discount?.amount ?? 0;
   const total = Math.max(0, subtotal + shipping - discountAmount);
 
@@ -60,7 +64,11 @@ export function OrderSummary({
         }}
       >
         <SummaryRow label="Subtotal" value={`$${subtotal.toFixed(2)}`} />
-        <SummaryRow label="Shipping" value={`$${shipping.toFixed(2)}`} />
+        <SummaryRow
+          label="Shipping"
+          value={shipping === 0 && subtotal > 0 ? "FREE" : `$${shipping.toFixed(2)}`}
+          hint={awayFromFree > 0 ? `$${awayFromFree.toFixed(2)} to free` : undefined}
+        />
         {discount ? (
           <div className="flex items-baseline justify-between gap-3 text-brand">
             <dt className="uppercase tracking-[0.22em]">
