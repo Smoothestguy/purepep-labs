@@ -63,15 +63,25 @@ export function CompoundVial({ compound: c, variant }: Props) {
           className="absolute bottom-[clamp(0.5rem,1vw,1rem)] left-[clamp(0.5rem,1vw,1rem)] right-[clamp(0.5rem,1vw,1rem)] flex items-end justify-between gap-3 font-mono tracking-[0.22em] uppercase text-[oklch(0.97_0.005_220)]"
           style={{ fontSize: "clamp(9px, 0.25vw + 8px, 10.5px)" }}
         >
-          <div>
+          {/* min-w-0 lets the subject line shrink and wrap instead of
+              overflowing into the MW column — at 375px the long form
+              ("Reconstitution Solution · 10 mL · lyophilised") otherwise
+              runs straight through it. The MW column holds its width so
+              the figure never breaks mid-number. */}
+          <div className="min-w-0">
             <div className="opacity-60">Subject</div>
-            <div className="mt-1">
-              {c.name} · {v.dose} · lyophilised
+            <div className="mt-1 break-words">
+              {/* Non-breaking space binds the last separator to the word
+                  after it, so a wrap never strands a "·" at the end of a
+                  line. */}
+              {c.name} · {v.dose} ·{"\u00A0"}lyophilised
             </div>
           </div>
-          <div className="text-right">
+          <div className="shrink-0 text-right">
             <div className="opacity-60">MW</div>
-            <div className="mt-1 text-brand">{c.molecularWeight} g/mol</div>
+            <div className="mt-1 whitespace-nowrap text-brand">
+              {c.molecularWeight} g/mol
+            </div>
           </div>
         </div>
       </div>
