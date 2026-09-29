@@ -16,6 +16,7 @@ import type {
   CheckoutShipping,
 } from "@/lib/checkout/types";
 import { OrderSummary } from "./order-summary";
+import { AddressAutocomplete } from "./address-autocomplete";
 import { shippingFor } from "@/lib/pricing";
 import {
   METHOD_BLURB,
@@ -399,13 +400,24 @@ export function CheckoutForm({ methods, processor, defaultEmail }: Props) {
                 onChange={(v) => setShipping((s) => ({ ...s, lastName: v }))}
               />
               <div className="sm:col-span-2">
-                <Field
-                  id="address1"
+                <AddressAutocomplete
                   label="Address"
-                  autoComplete="address-line1"
                   required
                   value={shipping.address1}
                   onChange={(v) => setShipping((s) => ({ ...s, address1: v }))}
+                  // Fills city/state/zip from the chosen suggestion, but
+                  // only overwrites a field the lookup actually returned —
+                  // a partial result must not blank out something the
+                  // customer already typed.
+                  onResolved={(a) =>
+                    setShipping((s) => ({
+                      ...s,
+                      address1: a.address1 || s.address1,
+                      city: a.city || s.city,
+                      state: a.state || s.state,
+                      zip: a.zip || s.zip,
+                    }))
+                  }
                 />
               </div>
               <div className="sm:col-span-2">
