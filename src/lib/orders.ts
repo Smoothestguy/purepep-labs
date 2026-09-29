@@ -44,6 +44,8 @@ export type OrderRow = {
   amount_mismatch_cents: number | null;
   discount_code: string | null;
   discount_cents: number;
+  square_order_id: string | null;
+  square_payment_id: string | null;
   marked_paid_by: string | null;
   marked_paid_at: string | null;
   created_at: string;
@@ -195,6 +197,83 @@ export async function markOrderComped(
 
   if (error) throw new Error(`Failed to settle comped order: ${error.message}`);
   return { transitioned: Boolean(data && data.length > 0) };
+}
+
+/**
+ * Record the Square order a payment link was created against.
+ *
+ * Written before the customer is redirected, because the payment webhook
+ * identifies the order by this id and nothing else — a payment that
+ * arrives for an id we never stored cannot be attributed.
+ */
+export async function attachSquareOrder(
+  orderRef: string,
+  squareOrderId: string,
+): Promise<void> {
+  const supabase = createAdminClient();
+  if (!supabase) throw new OrdersUnavailableError();
+
+  const { error } = await supabase
+    .from("orders")
+    .update({ square_order_id: squareOrderId })
+    .eq("order_ref", orderRef);
+
+  if (error) {
+    throw new Error(`Failed to attach Square order: ${error.message}`);
+  }
+}
+
+/**
+ * Settle a Square order from the payment webhook.
+ *
+ * Guarded on 'pending' and reports whether it moved the row, for the same
+ * reason as the Stripe path: Square retries deliveries, so the
+ * confirmation email must fire on the transition and not on every
+ * redelivery.
+ */
+export async function markOrderPaidBySquare(input: {
+  squareOrderId: string;
+  paymentId: string;
+  amountMismatchCents?: number | null;
+  raw: unknown;
+}): Promise<{ transitioned: boolean; order: OrderRow | null }> {
+  const supabase = createAdminClient();
+  if (!supabase) throw new OrdersUnavailableError();
+
+  const { data, error } = await supabase
+    .from("orders")
+    .update({
+      status: "paid",
+      gateway: "square",
+      square_payment_id: input.paymentId,
+      gateway_txn_id: input.paymentId,
+      gateway_response: input.raw,
+      amount_mismatch_cents: input.amountMismatchCents ?? null,
+    })
+    .eq("square_order_id", input.squareOrderId)
+    .eq("status", "pending")
+    .select("*");
+
+  if (error) throw new Error(`Failed to mark order paid: ${error.message}`);
+
+  const rows = (data ?? []) as OrderRow[];
+  return { transitioned: rows.length > 0, order: rows[0] ?? null };
+}
+
+export async function findOrderBySquareOrderId(
+  squareOrderId: string,
+): Promise<OrderRow | null> {
+  const supabase = createAdminClient();
+  if (!supabase) throw new OrdersUnavailableError();
+
+  const { data, error } = await supabase
+    .from("orders")
+    .select("*")
+    .eq("square_order_id", squareOrderId)
+    .maybeSingle();
+
+  if (error) throw new Error(`Failed to load order: ${error.message}`);
+  return (data as OrderRow | null) ?? null;
 }
 
 /**

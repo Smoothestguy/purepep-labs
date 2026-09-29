@@ -45,7 +45,7 @@ type Props = {
    */
   methods: PaymentMethod[];
   /** Which processor handles a card payment. */
-  processor: "stripe" | "nmi";
+  processor: "stripe" | "nmi" | "square";
   /**
    * The signed-in account's email, used to seed the contact field.
    * Ordering requires an account, so the server always knows this —
@@ -78,7 +78,9 @@ export function CheckoutForm({ methods, processor, defaultEmail }: Props) {
     () => methods[0] ?? "card",
   );
   const manualSelected = isManual(method);
-  const stripeSelected = !manualSelected && processor === "stripe";
+  // Stripe and Square both hand off to a processor-hosted page; only NMI
+  // collects the card in this form.
+  const hostedSelected = !manualSelected && processor !== "nmi";
 
   // CollectJS is configured once on mount and binds to the submit button,
   // so its callback closes over the method as it was at configure time.
@@ -301,7 +303,7 @@ export function CheckoutForm({ methods, processor, defaultEmail }: Props) {
 
     // Neither manual methods nor Stripe tokenise here — there is no card
     // in this form to tokenise.
-    if (manualSelected || stripeSelected) {
+    if (manualSelected || hostedSelected) {
       void submitCheckout("", method);
       return;
     }
@@ -593,14 +595,14 @@ export function CheckoutForm({ methods, processor, defaultEmail }: Props) {
                 soon as you place the order. Nothing is charged now, and your
                 order is reserved until funds clear.
               </p>
-            ) : stripeSelected ? (
+            ) : hostedSelected ? (
               <p
                 className="font-sans leading-relaxed text-muted-foreground"
                 style={{ fontSize: "clamp(11px, 0.3vw + 10px, 12.5px)" }}
               >
-                You&rsquo;ll be taken to Stripe&rsquo;s secure payment page to
-                enter your card, then returned here. Card details never touch
-                our servers, and nothing is charged until you confirm on that
+                You&rsquo;ll be taken to a secure payment page to enter your
+                card, then returned here. Card details never touch our
+                servers, and nothing is charged until you confirm on that
                 page.
               </p>
             ) : demoMode ? (
@@ -660,7 +662,7 @@ export function CheckoutForm({ methods, processor, defaultEmail }: Props) {
                     ? "Processing…"
                     : manualSelected
                       ? "Place order"
-                      : stripeSelected
+                      : hostedSelected
                         ? "Continue to payment"
                         : "Pay & place order"}
                 </span>

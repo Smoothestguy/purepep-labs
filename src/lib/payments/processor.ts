@@ -1,6 +1,7 @@
 import "server-only";
 
 import { isStripeConfigured } from "@/lib/stripe/config";
+import { isSquareConfigured } from "@/lib/square/config";
 import { methodsFor, type PaymentMethod } from "@/lib/payment-methods";
 
 /**
@@ -15,10 +16,13 @@ import { methodsFor, type PaymentMethod } from "@/lib/payment-methods";
  * Server-only: the decision depends on secret keys, so the checkout page
  * resolves it and passes the result down to the client form as props.
  */
-export type CardProcessor = "stripe" | "nmi";
+export type CardProcessor = "stripe" | "nmi" | "square";
 
 export function cardProcessor(): CardProcessor {
-  return process.env.CARD_PROCESSOR?.trim() === "nmi" ? "nmi" : "stripe";
+  const configured = process.env.CARD_PROCESSOR?.trim();
+  if (configured === "nmi") return "nmi";
+  if (configured === "square") return "square";
+  return "stripe";
 }
 
 /**
@@ -30,10 +34,14 @@ export function cardProcessor(): CardProcessor {
  * approval against live keys is exactly the failure mode worth avoiding.
  */
 export function isCardConfigured(): boolean {
-  if (cardProcessor() === "nmi") {
-    return Boolean(process.env.NEXT_PUBLIC_NMI_TOKENIZATION_KEY);
+  switch (cardProcessor()) {
+    case "nmi":
+      return Boolean(process.env.NEXT_PUBLIC_NMI_TOKENIZATION_KEY);
+    case "square":
+      return isSquareConfigured();
+    default:
+      return isStripeConfigured();
   }
-  return isStripeConfigured();
 }
 
 /** Payment methods offered for this deployment, card availability included. */
