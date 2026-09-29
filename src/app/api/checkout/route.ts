@@ -4,6 +4,7 @@ import { chargeCard, isGatewayConfigured } from "@/lib/nmi/gateway";
 import { applyDiscount, priceOrder, type RequestedLine } from "@/lib/pricing";
 import { lookupDiscount } from "@/lib/discounts";
 import {
+  attachSquareOrder,
   attachStripeSession,
   createPendingOrder,
   generateOrderRef,
@@ -15,6 +16,7 @@ import { getCurrentUser } from "@/lib/auth/user";
 import { resolveSiteOrigin } from "@/lib/site-url";
 import { cardProcessor, enabledMethods } from "@/lib/payments/processor";
 import { createCheckoutSession } from "@/lib/stripe/checkout";
+import { createPaymentLink } from "@/lib/square/checkout";
 import { sendOrderConfirmation, sendPaymentInstructions } from "@/lib/email";
 import { isManual, isPaymentMethod, type PaymentMethod } from "@/lib/payment-methods";
 import { paymentInstructions } from "@/lib/payment-instructions";
@@ -192,6 +194,9 @@ export async function POST(request: NextRequest): Promise<Response> {
   const manual = isManual(method);
   const processor = cardProcessor();
   const usingStripe = !comped && !manual && processor === "stripe";
+  const usingSquare = !comped && !manual && processor === "square";
+  // Both hosted processors need an absolute origin for their return URL.
+  const usingHosted = usingStripe || usingSquare;
 
   // Card-only preflight: refuse rather than fake an approval in production.
   const nmiReady = isGatewayConfigured();
@@ -203,7 +208,7 @@ export async function POST(request: NextRequest): Promise<Response> {
   }
 
   let origin: string | null = null;
-  if (usingStripe) {
+  if (usingHosted) {
     origin = resolveSiteOrigin(request.nextUrl.origin);
     if (!origin) {
       console.error(
@@ -336,6 +341,66 @@ export async function POST(request: NextRequest): Promise<Response> {
         orderId: orderRef,
         awaitingPayment: true,
         message: "Order recorded. Payment instructions sent by email.",
+      } satisfies CheckoutResponse,
+      { status: 200 },
+    );
+  }
+
+  // ── Square: hand off to the hosted payment link ──────────────────
+  //
+  // Refuses without a persisted order for the same reason as Stripe: the
+  // webhook settles by looking the order up from Square's order id, so a
+  // link minted against a row that does not exist would take money we
+  // could never attribute.
+  if (usingSquare) {
+    if (!persisted) {
+      return fail(
+        "We could not record your order. No payment was taken. Please try again.",
+        503,
+      );
+    }
+
+    const link = await createPaymentLink({
+      order,
+      orderRef,
+      email: body.email,
+      origin: origin as string,
+    });
+
+    if (!link.ok) {
+      await markOrderFailed(orderRef, link.error);
+      return fail(link.error, 502);
+    }
+
+    // Without Square's order id the webhook has nothing to match on, so
+    // the payment would arrive unattributable. Stop before the customer
+    // pays rather than after.
+    if (!link.squareOrderId) {
+      await markOrderFailed(orderRef, "Square returned no order id.");
+      console.error(`[checkout] ${orderRef}: Square returned no order_id.`);
+      return fail("Could not start the payment session.", 502);
+    }
+
+    try {
+      await attachSquareOrder(orderRef, link.squareOrderId);
+    } catch (err) {
+      // Fatal here, unlike the Stripe equivalent: Square's webhook carries
+      // no reference of ours, only its own order id, so an unstored link
+      // means the payment can never be matched to this order.
+      console.error(
+        `[checkout] ${orderRef}: could not attach Square order id:`,
+        err instanceof Error ? err.message : err,
+      );
+      await markOrderFailed(orderRef, "Could not link Square order.");
+      return fail("Could not start the payment session.", 503);
+    }
+
+    return Response.json(
+      {
+        ok: true,
+        orderId: orderRef,
+        redirectUrl: link.url,
+        message: "Redirecting to secure payment.",
       } satisfies CheckoutResponse,
       { status: 200 },
     );
