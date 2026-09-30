@@ -117,9 +117,12 @@ export function Hero() {
           </h1>
 
           <p
-            className="body-lede animate-rise"
+            // Below lg the vial sits above the copy in a 16:10 frame, so on
+            // wider phones the lede ran into the bottom of the label. The
+            // gap grows with the viewport to keep it clear of the vial.
+            className="body-lede animate-rise [--lede-mt:max(1.5rem,calc(60vw_-_12.5rem))] lg:[--lede-mt:clamp(1.5rem,2.5vw,2.25rem)]"
             style={{
-              marginTop: "clamp(1.5rem, 2.5vw, 2.25rem)",
+              marginTop: "var(--lede-mt)",
               maxWidth: "36rem",
               color: "oklch(0.78 0.01 230)",
               animationDelay: "520ms",
