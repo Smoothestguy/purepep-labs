@@ -12,6 +12,14 @@ export type Variant = {
   lot: string;
   coaDate: string;
   /**
+   * Purity for THIS lot, from its certificate. Purity is measured per
+   * batch, so it varies between lots of the same compound; falls back to
+   * the compound-level figure where a lot has no certificate yet.
+   */
+  purity?: number;
+  /** Laboratory that signed this lot's certificate. */
+  lab?: string;
+  /**
    * Filename of the signed CoA for this lot, served from /coa/.
    * Only set where a real PDF exists — the archive shows a download link
    * for those lots and nothing for the rest, so it can never offer a
@@ -59,7 +67,7 @@ export const compounds: Compound[] = [
     blurb:
       "Gastric pentadecapeptide. Synthesised and freeze-dried under inert argon.",
     variants: [
-      { dose: "10 mg", price: 39.99, inStock: 214, lot: "A-4418", coaDate: "2026-03-14" },
+      { dose: "10 mg", price: 39.99, inStock: 214, lot: "BC10-001", coaDate: "2026-08-06", purity: 99.77, lab: "ILS Laboratories", coaPdf: "bc10-001.pdf" },
     ],
     accent: { from: "oklch(0.65 0.22 258)", to: "oklch(0.82 0.15 210)" },
   },
@@ -91,7 +99,7 @@ export const compounds: Compound[] = [
     blurb: "Endogenous tripeptide–copper complex. Royal blue lyophilisate.",
     variants: [
       { dose: "50 mg", price: 34.99, inStock: 402, lot: "B-1904", coaDate: "2026-03-09" },
-      { dose: "100 mg", price: 44.99, inStock: 220, lot: "B-1904", coaDate: "2026-03-09" },
+      { dose: "100 mg", price: 44.99, inStock: 220, lot: "GHK100-001", coaDate: "2026-08-06", purity: 99.33, lab: "ILS Laboratories", coaPdf: "ghk100-001.pdf" },
     ],
     accent: { from: "oklch(0.55 0.18 60)", to: "oklch(0.78 0.16 75)" },
   },
@@ -138,7 +146,7 @@ export const compounds: Compound[] = [
     blurb: "Stabilised 44-residue peptide analogue. Amber glass, N₂ headspace.",
     variants: [
       { dose: "10 mg", price: 49.99, inStock: 42, lot: "D-2207", coaDate: "2026-03-28" },
-      { dose: "20 mg", price: 84.99, inStock: 36, lot: "D-2207", coaDate: "2026-03-28" },
+      { dose: "20 mg", price: 84.99, inStock: 36, lot: "TSA20-001", coaDate: "2026-08-12", purity: 99.10, lab: "ILS Laboratories", coaPdf: "tsa20-001.pdf" },
     ],
     accent: { from: "oklch(0.6 0.18 160)", to: "oklch(0.78 0.14 180)" },
   },
@@ -208,7 +216,7 @@ export const compounds: Compound[] = [
     family: "Peptide blend",
     blurb: "CJC-1295 (no-DAC) paired with Ipamorelin. Co-lyophilised.",
     variants: [
-      { dose: "5 mg + 5 mg", price: 49.99, inStock: 140, lot: "TBD", coaDate: "TBD" },
+      { dose: "5 mg + 5 mg", price: 49.99, inStock: 140, lot: "CJIP10-001", coaDate: "2026-08-06", purity: 99.93, lab: "ILS Laboratories", coaPdf: "cjip10-001.pdf" },
     ],
     accent: { from: "oklch(0.6 0.18 145)", to: "oklch(0.8 0.14 170)" },
   },
@@ -224,9 +232,9 @@ export const compounds: Compound[] = [
     family: "Tri-agonist",
     blurb: "GLP-1 / GIP / glucagon triple receptor agonist. Lyophilised.",
     variants: [
-      { dose: "10 mg", price: 64.99, inStock: 80, lot: "TBD", coaDate: "TBD" },
-      { dose: "20 mg", price: 79.99, inStock: 70, lot: "TBD", coaDate: "TBD" },
-      { dose: "30 mg", price: 94.99, inStock: 60, lot: "TBD", coaDate: "TBD" },
+      { dose: "10 mg", price: 64.99, inStock: 80, lot: "RTA10-001", coaDate: "2026-08-06", purity: 99.90, lab: "ILS Laboratories", coaPdf: "rta10-001.pdf" },
+      { dose: "20 mg", price: 79.99, inStock: 70, lot: "RTA20-001", coaDate: "2026-08-06", purity: 99.88, lab: "ILS Laboratories", coaPdf: "rta20-001.pdf" },
+      { dose: "30 mg", price: 94.99, inStock: 60, lot: "RTA30-001", coaDate: "2026-08-06", purity: 99.89, lab: "ILS Laboratories", coaPdf: "rta30-001.pdf" },
       { dose: "60 mg", price: 134.99, inStock: 40, lot: "TBD", coaDate: "TBD" },
     ],
     accent: { from: "oklch(0.58 0.2 245)", to: "oklch(0.78 0.15 220)" },

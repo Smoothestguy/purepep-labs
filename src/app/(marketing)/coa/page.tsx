@@ -44,20 +44,29 @@ function buildRows(): CoaRow[] {
   const rows: CoaRow[] = [];
 
   for (const c of compounds) {
-    const v = defaultVariant(c);
     const lab = labFor(c.accession);
-    const purityStr = `${c.purity.toFixed(2)}%`;
 
-    // Current lot — the only one a real PDF is ever attached to.
-    rows.push({
-      lot: v.lot,
-      compound: c.name,
-      accession: c.accession,
-      purity: purityStr,
-      date: v.coaDate.replaceAll("-", "."),
-      lab,
-      pdf: v.coaPdf ? `/coa/${v.coaPdf}` : undefined,
-    });
+    // Every dose is its own lot with its own certificate, so each variant
+    // gets a row. Listing only the default hid the certificates for
+    // second and third doses entirely.
+    for (const variant of c.variants) {
+      rows.push({
+        lot: variant.lot,
+        compound: c.name,
+        accession: c.accession,
+        purity: `${(variant.purity ?? c.purity).toFixed(2)}%`,
+        date: variant.coaDate.replaceAll("-", "."),
+        lab: variant.lab ?? lab,
+        pdf: variant.coaPdf ? `/coa/${variant.coaPdf}` : undefined,
+      });
+    }
+
+    // Historical lots are derived from the default variant only.
+    const v = defaultVariant(c);
+    // Purity and lab come from the lot's own certificate where one
+    // exists; the compound-level figure is only a fallback for lots not
+    // yet assayed.
+    const purityStr = `${(v.purity ?? c.purity).toFixed(2)}%`;
 
     // Three historical lots, stepping back roughly monthly with varying step sizes
     const historicalLots = synthesiseHistoricalLots(v.lot, [18, 36, 54]);

@@ -141,7 +141,7 @@ export function ProductCard({ compound: c }: Props) {
           >
             Purity
           </div>
-          <div className="mt-1 text-brand">{c.purity}%</div>
+          <div className="mt-1 text-brand">{variant.purity ?? c.purity}%</div>
         </div>
       </div>
 
