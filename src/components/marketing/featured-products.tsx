@@ -85,9 +85,9 @@ export function FeaturedProducts() {
         </div>
 
         <div
-          // Five across at xl so the current five certified compounds sit
-          // in one row rather than four plus an orphan.
-          className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5"
+          // Six certified compounds: two rows of three on desktop, three
+          // rows of two on phones — no orphan tile either way.
+          className="grid grid-cols-2 lg:grid-cols-3"
           style={{
             marginTop: "clamp(1.5rem, 2.5vw, 2.25rem)",
             gap: "clamp(0.5rem, 1.2vw, 1.25rem)",

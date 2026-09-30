@@ -257,7 +257,9 @@ export const compounds: Compound[] = [
     family: "Dual agonist",
     blurb: "GLP-1 / GIP dual receptor agonist. Lyophilised.",
     variants: [
-      { dose: "20 mg", price: 69.99, inStock: 90, lot: "TBD", coaDate: "TBD" },
+      { dose: "30 mg", price: 84.99, inStock: 90, lot: "TIR30-001", coaDate: "2026-08-07", purity: 99.95, lab: "ILS Laboratories", coaPdf: "tir30-001.pdf" },
+      { dose: "60 mg", price: 122.99, inStock: 90, lot: "TIR60-001", coaDate: "2026-08-07", purity: 99.94, lab: "ILS Laboratories", coaPdf: "tir60-001.pdf" },
+      { dose: "100 mg", price: 179.99, inStock: 90, lot: "TBD", coaDate: "TBD" },
     ],
     accent: { from: "oklch(0.62 0.18 200)", to: "oklch(0.8 0.14 230)" },
   },
