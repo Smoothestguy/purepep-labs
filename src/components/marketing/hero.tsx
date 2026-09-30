@@ -51,10 +51,10 @@ export function Hero() {
 
       {/* Main content — copy stays in the left two-thirds, never crosses the vial */}
       <div
-        className="relative z-10 mx-auto flex w-full max-w-[var(--content-max)] flex-col justify-center pad-x lg:min-h-[min(78vh,820px)]"
+        className="relative z-10 mx-auto flex w-full max-w-[var(--content-max)] flex-col justify-center pad-x lg:min-h-[min(56vh,620px)]"
         style={{
-          paddingTop: "clamp(2rem, 4vw + 1rem, 5rem)",
-          paddingBottom: "clamp(2rem, 4vw + 1rem, 4rem)",
+          paddingTop: "clamp(1.5rem, 3vw + 0.5rem, 3.5rem)",
+          paddingBottom: "clamp(1.5rem, 3vw + 0.5rem, 3rem)",
         }}
       >
         <div className="relative flex w-full flex-col lg:max-w-[min(64%,57.5rem)]">

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   compounds,
   compoundPhotoSrc,
@@ -10,80 +10,66 @@ import {
 } from "@/lib/compounds";
 
 /**
- * "Every vial passes inspection" — a horizontal rail of vials with the
- * centred one under inspection, and a spec bar reading out whatever is
- * focused.
+ * "Every vial passes inspection" — a slow, continuous marquee of vials.
+ * Whichever vial is crossing the centre is under inspection: it scales
+ * up, gets the corner brackets, and the spec bar below reads it out.
  *
- * Built on a native scroll container with scroll-snap rather than a
- * JavaScript carousel: swipe, trackpad, keyboard and screen-reader
- * behaviour all come for free, and the rail still works if the JS that
- * tracks the focused item never runs. The arrows and the spec bar are
- * enhancements on top of something that already scrolls.
+ * The track holds the catalogue twice and slides left by exactly half
+ * its width, so the loop is seamless. Each item carries its own trailing
+ * spacing rather than using `gap`, which keeps the two halves exactly
+ * equal — with gap, the seam would jump by one gap width per cycle.
  *
- * Deliberately shows no price. Prices are gated behind sign-in, so a
- * price here would either leak them or render a row of "sign in" stubs.
+ * Motion is CSS, not JS: the animation keeps running smoothly even while
+ * React is busy. JS only reads which vial is nearest the centre, a few
+ * times a second. Hover or keyboard focus pauses it so a vial can be
+ * clicked; reduced-motion users get a static, scrollable rail instead.
  */
+
+const n = compounds.length;
+const LOOP = [...compounds, ...compounds];
+/** Seconds per vial — slow enough to read, fast enough to feel alive. */
+const SECONDS_PER_VIAL = 3.2;
+
 export function InspectionCarousel() {
-  const scrollerRef = useRef<HTMLDivElement>(null);
+  const viewportRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<Array<HTMLDivElement | null>>([]);
-  const [active, setActive] = useState(0);
-
-  /** Whichever item's centre is nearest the scroller's centre. */
-  const syncActive = useCallback(() => {
-    const scroller = scrollerRef.current;
-    if (!scroller) return;
-
-    const mid = scroller.scrollLeft + scroller.clientWidth / 2;
-    let best = 0;
-    let bestDelta = Infinity;
-
-    itemRefs.current.forEach((el, i) => {
-      if (!el) return;
-      const centre = el.offsetLeft + el.offsetWidth / 2;
-      const delta = Math.abs(centre - mid);
-      if (delta < bestDelta) {
-        bestDelta = delta;
-        best = i;
-      }
-    });
-
-    setActive((prev) => (prev === best ? prev : best));
-  }, []);
+  const [activeSlot, setActiveSlot] = useState(0);
 
   useEffect(() => {
-    const scroller = scrollerRef.current;
-    if (!scroller) return;
-
     let frame = 0;
-    const onScroll = () => {
-      // Coalesce to one read per frame; scroll fires far faster than the
-      // highlight needs to move.
-      cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(syncActive);
+    let last = 0;
+
+    const tick = (t: number) => {
+      // Measuring every frame is wasted work; ~8 reads a second is plenty
+      // for a highlight that moves this slowly.
+      if (t - last > 120) {
+        last = t;
+        const vp = viewportRef.current;
+        if (vp) {
+          const r = vp.getBoundingClientRect();
+          const mid = r.left + r.width / 2;
+          let best = 0;
+          let bestDelta = Infinity;
+          itemRefs.current.forEach((el, i) => {
+            if (!el) return;
+            const b = el.getBoundingClientRect();
+            const d = Math.abs(b.left + b.width / 2 - mid);
+            if (d < bestDelta) {
+              bestDelta = d;
+              best = i;
+            }
+          });
+          setActiveSlot((prev) => (prev === best ? prev : best));
+        }
+      }
+      frame = requestAnimationFrame(tick);
     };
 
-    scroller.addEventListener("scroll", onScroll, { passive: true });
-    syncActive();
-
-    return () => {
-      cancelAnimationFrame(frame);
-      scroller.removeEventListener("scroll", onScroll);
-    };
-  }, [syncActive]);
-
-  const scrollTo = useCallback((index: number) => {
-    const el = itemRefs.current[index];
-    if (!el) return;
-    el.scrollIntoView({
-      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
-        ? "auto"
-        : "smooth",
-      inline: "center",
-      block: "nearest",
-    });
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
   }, []);
 
-  const current = compounds[active] ?? compounds[0];
+  const current = LOOP[activeSlot] ?? compounds[0];
   const variant = defaultVariant(current);
   const slug = compoundSlug(current);
 
@@ -92,17 +78,15 @@ export function InspectionCarousel() {
       id="inspection"
       className="relative border-b border-hairline bg-background"
       style={{
-        paddingTop: "clamp(3rem, 5vw, 5rem)",
-        paddingBottom: "clamp(3rem, 5vw, 5rem)",
-        // Drives both the item width and the padding that lets the first
-        // and last vial reach the centre.
-        ["--vial-w" as string]: "clamp(6.5rem, 20vw, 10rem)",
+        paddingTop: "clamp(2.5rem, 4vw, 4rem)",
+        paddingBottom: "clamp(2.5rem, 4vw, 4rem)",
+        ["--vial-w" as string]: "clamp(6.5rem, 14vw, 10rem)",
+        ["--vial-gap" as string]: "clamp(1.25rem, 3vw, 2.5rem)",
       }}
     >
-      {/* Heading */}
       <div className="mx-auto w-full max-w-[var(--content-max)] pad-x">
         <div className="section-eyebrow justify-center text-center">
-          <span className="whitespace-nowrap text-brand">§ 05</span>
+          <span className="whitespace-nowrap text-brand">§ 01</span>
           <span
             className="h-px shrink-0 bg-hairline"
             style={{ width: "clamp(1.5rem, 3vw, 2.75rem)" }}
@@ -112,7 +96,7 @@ export function InspectionCarousel() {
         <h2
           className="text-center font-display leading-[0.95] tracking-[-0.02em]"
           style={{
-            marginTop: "clamp(0.85rem, 1.4vw, 1.25rem)",
+            marginTop: "clamp(0.75rem, 1.2vw, 1.1rem)",
             fontSize: "clamp(1.9rem, 5vw, 3.75rem)",
           }}
         >
@@ -124,97 +108,74 @@ export function InspectionCarousel() {
         </h2>
       </div>
 
-      {/* Rail */}
+      {/* Marquee */}
       <div
-        className="relative"
-        style={{ marginTop: "clamp(2rem, 3.5vw, 3rem)" }}
+        ref={viewportRef}
+        className="pp-marquee relative"
+        style={{
+          marginTop: "clamp(1.5rem, 3vw, 2.5rem)",
+          // Vertical room for the scaled-up vial and its brackets.
+          paddingBlock: "clamp(1.75rem, 3.5vw, 2.75rem)",
+          // Soft fade at both edges so vials drift in and out rather
+          // than being cut off by the viewport.
+          maskImage:
+            "linear-gradient(to right, transparent, black 7%, black 93%, transparent)",
+          WebkitMaskImage:
+            "linear-gradient(to right, transparent, black 7%, black 93%, transparent)",
+        }}
       >
         <div
-          ref={scrollerRef}
-          role="listbox"
-          aria-label="Compound catalogue"
-          tabIndex={0}
-          onKeyDown={(e) => {
-            if (e.key === "ArrowRight") {
-              e.preventDefault();
-              scrollTo(Math.min(active + 1, compounds.length - 1));
-            } else if (e.key === "ArrowLeft") {
-              e.preventDefault();
-              scrollTo(Math.max(active - 1, 0));
-            }
-          }}
-          className="flex snap-x snap-mandatory items-center overflow-x-auto focus:outline-none [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          className="pp-marquee-track flex w-max items-center"
           style={{
-            gap: "clamp(0.75rem, 2vw, 1.75rem)",
-            // Lets the first and last item scroll to dead centre.
-            paddingInline: "calc(50% - (var(--vial-w) / 2))",
-            // overflow-x: auto forces overflow-y to auto too, so the rail
-            // clips anything drawn outside it — the scaled-up focused vial
-            // and its corner brackets both need room to breathe.
-            paddingBlock: "clamp(1.75rem, 4vw, 2.75rem)",
+            ["--marquee-duration" as string]: `${n * SECONDS_PER_VIAL}s`,
           }}
         >
-          {compounds.map((c, i) => {
-            const isActive = i === active;
+          {LOOP.map((c, i) => {
+            const isActive = i === activeSlot;
             const v = defaultVariant(c);
             return (
               <div
-                key={c.accession}
+                key={`${c.accession}-${i}`}
                 ref={(el) => {
                   itemRefs.current[i] = el;
                 }}
-                role="option"
-                aria-selected={isActive}
-                className="relative shrink-0 snap-center"
-                style={{ width: "var(--vial-w)" }}
+                className="relative shrink-0"
+                style={{
+                  width: "var(--vial-w)",
+                  marginRight: "var(--vial-gap)",
+                }}
+                // The second copy exists only to make the loop seamless.
+                aria-hidden={i >= n}
               >
-                <button
-                  type="button"
-                  onClick={() => scrollTo(i)}
-                  aria-label={`${c.name}, ${v.dose}`}
-                  className="block w-full cursor-pointer text-center transition-all duration-500"
+                <Link
+                  href={`/product/${compoundSlug(c)}`}
+                  tabIndex={i >= n ? -1 : 0}
+                  aria-label={`${c.name}, ${v.dose}, $${v.price}`}
+                  className="block transition-all duration-500 ease-out"
                   style={{
-                    transform: isActive ? "scale(1.28)" : "scale(1)",
-                    opacity: isActive ? 1 : 0.45,
-                    filter: isActive ? "none" : "grayscale(0.35)",
+                    transform: isActive ? "scale(1.3)" : "scale(0.92)",
+                    opacity: isActive ? 1 : 0.5,
+                    filter: isActive ? "none" : "grayscale(0.4)",
                   }}
                 >
                   <img
                     src={compoundPhotoSrc(c)}
                     alt=""
-                    aria-hidden
                     loading="lazy"
                     className="mx-auto block h-auto w-full object-contain"
                   />
-                </button>
-
-                {/* Inspection ticks — only around the focused vial. */}
+                </Link>
                 {isActive ? <InspectionTicks /> : null}
               </div>
             );
           })}
         </div>
-
-        {/* Arrows. Hidden from assistive tech: the rail itself is already
-            keyboard-operable and exposed as a listbox. */}
-        <RailArrow
-          side="left"
-          disabled={active === 0}
-          onClick={() => scrollTo(Math.max(active - 1, 0))}
-        />
-        <RailArrow
-          side="right"
-          disabled={active === compounds.length - 1}
-          onClick={() =>
-            scrollTo(Math.min(active + 1, compounds.length - 1))
-          }
-        />
       </div>
 
       {/* Spec bar */}
       <div
         className="mx-auto w-full max-w-[var(--content-max)] pad-x"
-        style={{ marginTop: "clamp(2rem, 3.5vw, 3rem)" }}
+        style={{ marginTop: "clamp(1.25rem, 2.5vw, 2rem)" }}
       >
         <div
           className="grid grid-cols-2 gap-px border border-hairline bg-hairline md:grid-cols-[1.4fr_1fr_1fr_1.2fr_auto]"
@@ -229,13 +190,27 @@ export function InspectionCarousel() {
             </span>
           </SpecCell>
           <SpecCell label="Format">{variant.dose} vial</SpecCell>
-          <SpecCell label="Testing">
-            <span className="text-brand">Third-party</span>
+          <SpecCell label="Price">
+            <span
+              className="font-display tracking-tight text-foreground"
+              style={{ fontSize: "clamp(1.1rem, 2vw, 1.5rem)" }}
+            >
+              ${variant.price}
+            </span>
           </SpecCell>
           <SpecCell label="Certificate">
-            <Link href="/coa" className="text-brand hover:underline">
-              CoA archive
-            </Link>
+            {variant.coaPdf ? (
+              <a
+                href={`/coa/${variant.coaPdf}`}
+                target="_blank"
+                rel="noopener"
+                className="text-brand hover:underline"
+              >
+                View CoA
+              </a>
+            ) : (
+              <span className="text-muted-foreground">In assay</span>
+            )}
           </SpecCell>
 
           <div
@@ -297,10 +272,10 @@ function SpecCell({
 /** Corner brackets, echoing the vial figure on the product page. */
 function InspectionTicks() {
   const corners = [
-    "-top-3 -left-3 border-t border-l",
-    "-top-3 -right-3 border-t border-r",
-    "-bottom-3 -left-3 border-b border-l",
-    "-bottom-3 -right-3 border-b border-r",
+    "-top-4 -left-3 border-t border-l",
+    "-top-4 -right-3 border-t border-r",
+    "-bottom-4 -left-3 border-b border-l",
+    "-bottom-4 -right-3 border-b border-r",
   ];
   return (
     <>
@@ -312,31 +287,5 @@ function InspectionTicks() {
         />
       ))}
     </>
-  );
-}
-
-function RailArrow({
-  side,
-  disabled,
-  onClick,
-}: {
-  side: "left" | "right";
-  disabled: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      aria-hidden
-      tabIndex={-1}
-      onClick={onClick}
-      disabled={disabled}
-      className={`absolute top-1/2 hidden -translate-y-1/2 items-center justify-center border border-hairline bg-background/80 text-foreground backdrop-blur transition-colors hover:border-foreground disabled:opacity-25 sm:flex ${
-        side === "left" ? "left-3" : "right-3"
-      }`}
-      style={{ width: "2.25rem", height: "2.25rem" }}
-    >
-      {side === "left" ? "←" : "→"}
-    </button>
   );
 }

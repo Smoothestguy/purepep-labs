@@ -393,3 +393,23 @@
     animation: none !important;
   }
 }
+
+/* Homepage vial marquee. Separate from the ticker's `marquee` keyframes
+   so tuning one can never change the other. The track holds the list
+   twice, so sliding by -50% lands exactly where it started. */
+@keyframes pp-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.pp-marquee { overflow: hidden; }
+.pp-marquee-track {
+  animation: pp-marquee var(--marquee-duration, 70s) linear infinite;
+}
+.pp-marquee:hover .pp-marquee-track,
+.pp-marquee:focus-within .pp-marquee-track {
+  animation-play-state: paused;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pp-marquee { overflow-x: auto; }
+  .pp-marquee-track { animation: none; }
+}

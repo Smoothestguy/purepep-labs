@@ -1,6 +1,10 @@
 import Link from "next/link";
 import { compounds, compoundSlug, defaultVariant } from "@/lib/compounds";
 
+/** Catalogue entries still carry "TBD" and 0 placeholders; show a dash. */
+const fmtText = (v: string) => (!v || v === "TBD" ? "—" : v);
+const fmtMw = (mw: number) => (mw > 0 ? `${mw} g/mol` : "—");
+
 export function CompoundIndex() {
   return (
     <section id="catalog" className="relative border-b border-hairline">
@@ -18,7 +22,7 @@ export function CompoundIndex() {
         >
           <div className="flex-1">
             <div className="section-eyebrow">
-              <span className="whitespace-nowrap text-brand">§ 02</span>
+              <span className="whitespace-nowrap text-brand">§ 03</span>
               <span
                 className="h-px shrink-0 bg-hairline"
                 style={{ width: "clamp(1.5rem, 3vw, 2.75rem)" }}
@@ -52,15 +56,12 @@ export function CompoundIndex() {
       {/* Column header.
           Repeated over each column at xl, where the list runs two-up — a
           single header cannot label two independent grids. */}
-      <div className="mx-auto hidden w-full max-w-[var(--content-max)] border-y border-hairline bg-background pad-x md:block">
+      <div className="mx-auto hidden w-full max-w-[var(--content-max)] border-y border-hairline bg-background pad-x md:block xl:hidden">
         <div
           className="grid xl:grid-cols-2"
           style={{ columnGap: "clamp(1.5rem, 3vw, 3rem)" }}
         >
           <ColumnHeader />
-          <div className="hidden xl:block">
-            <ColumnHeader />
-          </div>
         </div>
       </div>
 
@@ -80,7 +81,7 @@ export function CompoundIndex() {
           >
             {/* MOBILE stack */}
             <div
-              className="flex flex-col md:hidden"
+              className="flex flex-col md:hidden xl:flex"
               style={{
                 gap: "clamp(0.875rem, 2vw, 1.25rem)",
                 paddingBlock: "clamp(1.25rem, 3vw, 1.75rem)",
@@ -141,26 +142,26 @@ export function CompoundIndex() {
                   <div className="tracking-[0.22em] uppercase text-muted-foreground" style={{ fontSize: "clamp(9px, 0.25vw + 8px, 10px)" }}>
                     Sequence
                   </div>
-                  <div className="mt-1 break-all">{c.sequence}</div>
+                  <div className="mt-1 break-all">{fmtText(c.sequence)}</div>
                 </div>
                 <div>
                   <div className="tracking-[0.22em] uppercase text-muted-foreground" style={{ fontSize: "clamp(9px, 0.25vw + 8px, 10px)" }}>
                     Lot
                   </div>
-                  <div className="mt-1">{v.lot}</div>
+                  <div className="mt-1">{fmtText(v.lot)}</div>
                 </div>
                 <div>
                   <div className="tracking-[0.22em] uppercase text-muted-foreground" style={{ fontSize: "clamp(9px, 0.25vw + 8px, 10px)" }}>
                     MW
                   </div>
-                  <div className="mt-1">{c.molecularWeight} g/mol</div>
+                  <div className="mt-1">{fmtMw(c.molecularWeight)}</div>
                 </div>
                 <div>
                   <div className="tracking-[0.22em] uppercase text-muted-foreground" style={{ fontSize: "clamp(9px, 0.25vw + 8px, 10px)" }}>
                     Purity · Stock
                   </div>
                   <div className="mt-1 text-brand">
-                    {c.purity}% · {v.inStock}
+                    {v.purity ?? c.purity}% · {v.inStock}
                   </div>
                 </div>
               </div>
@@ -168,7 +169,7 @@ export function CompoundIndex() {
 
             {/* MD–LG compact */}
             <div
-              className="hidden items-center md:grid"
+              className="hidden items-center md:grid xl:hidden"
               style={{
                 gridTemplateColumns: "64px minmax(0,2fr) minmax(0,1fr) 100px 110px",
                 gap: "clamp(0.875rem, 1.5vw, 1.25rem)",
@@ -203,16 +204,16 @@ export function CompoundIndex() {
                   className="mt-1.5 truncate font-mono tracking-[0.08em] text-foreground/70"
                   style={{ fontSize: "clamp(10px, 0.3vw + 9px, 11px)" }}
                 >
-                  {c.sequence}
-                  <span className="text-muted-foreground"> · Lot {v.lot}</span>
+                  {fmtText(c.sequence)}
+                  <span className="text-muted-foreground"> · Lot {fmtText(v.lot)}</span>
                 </div>
               </div>
               <div
                 className="font-mono tracking-[0.08em]"
                 style={{ fontSize: "clamp(10px, 0.3vw + 9px, 11px)" }}
               >
-                <div className="text-foreground">{c.molecularWeight} g/mol</div>
-                <div className="mt-1 text-brand">{c.purity}%</div>
+                <div className="text-foreground">{fmtMw(c.molecularWeight)}</div>
+                <div className="mt-1 text-brand">{v.purity ?? c.purity}%</div>
               </div>
               <div
                 className="text-right font-mono tracking-[0.08em]"
