@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { compounds, compoundSlug, defaultVariant } from "@/lib/compounds";
-import { GatedPrice } from "@/components/shop/price";
 
 export function CompoundIndex() {
   return (
@@ -97,13 +96,18 @@ export function CompoundIndex() {
                     {String(i + 1).padStart(2, "0")} / {compounds.length}
                   </span>
                 </div>
-                {/* interactive={false}: this row is already wrapped in a Link. */}
-                <GatedPrice
-                  value={v.price}
-                  fontSize="clamp(1.6rem, 5vw, 2rem)"
-                  labelFontSize="clamp(9px, 0.25vw + 8px, 10px)"
-                  interactive={false}
-                />
+                <div
+                  className="flex items-baseline gap-1 font-display leading-none tracking-tight"
+                  style={{ fontSize: "clamp(1.6rem, 5vw, 2rem)" }}
+                >
+                  <span
+                    className="font-mono tracking-[0.25em] uppercase text-muted-foreground"
+                    style={{ fontSize: "clamp(9px, 0.25vw + 8px, 10px)" }}
+                  >
+                    USD
+                  </span>
+                  <span>${v.price}</span>
+                </div>
               </div>
               <div>
                 <h3
@@ -230,12 +234,18 @@ export function CompoundIndex() {
                 </div>
               </div>
               <div className="flex justify-end">
-                <GatedPrice
-                  value={v.price}
-                  fontSize="clamp(1.5rem, 2.8vw, 2.1rem)"
-                  labelFontSize="clamp(9px, 0.2vw + 8.5px, 10px)"
-                  interactive={false}
-                />
+                <div
+                  className="flex items-baseline gap-1 font-display leading-none tracking-tight"
+                  style={{ fontSize: "clamp(1.5rem, 2.8vw, 2.1rem)" }}
+                >
+                  <span
+                    className="font-mono tracking-[0.25em] uppercase text-muted-foreground"
+                    style={{ fontSize: "clamp(9px, 0.2vw + 8.5px, 10px)" }}
+                  >
+                    USD
+                  </span>
+                  <span>${v.price}</span>
+                </div>
               </div>
             </div>
 

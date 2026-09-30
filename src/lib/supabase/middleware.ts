@@ -73,6 +73,7 @@ export async function updateSession(request: NextRequest) {
     pathname === "/" ||
     pathname === "/shop" ||
     pathname.startsWith("/product/") ||
+    pathname === "/cart" ||
     pathname === "/coa" ||
     pathname.startsWith("/coa/") ||
     pathname.startsWith("/login") ||
