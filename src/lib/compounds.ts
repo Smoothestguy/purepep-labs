@@ -11,6 +11,13 @@ export type Variant = {
   inStock: number;
   lot: string;
   coaDate: string;
+  /**
+   * Filename of the signed CoA for this lot, served from /coa/.
+   * Only set where a real PDF exists — the archive shows a download link
+   * for those lots and nothing for the rest, so it can never offer a
+   * certificate that isn't there.
+   */
+  coaPdf?: string;
 };
 
 export type Compound = {
@@ -134,21 +141,6 @@ export const compounds: Compound[] = [
       { dose: "20 mg", price: 84.99, inStock: 36, lot: "D-2207", coaDate: "2026-03-28" },
     ],
     accent: { from: "oklch(0.6 0.18 160)", to: "oklch(0.78 0.14 180)" },
-  },
-  {
-    accession: "PP-007",
-    name: "Epitalon",
-    codename: "Pineal Tetrapeptide",
-    sequence: "AEDG",
-    molecularWeight: 390.35,
-    purity: 99.74,
-    category: "senescence",
-    family: "Tetrapeptide",
-    blurb: "Telomerase-associated tetrapeptide. Isolated from bovine pineal.",
-    variants: [
-      { dose: "10 mg", price: 58, inStock: 188, lot: "B-1911", coaDate: "2026-03-11" },
-    ],
-    accent: { from: "oklch(0.45 0.2 290)", to: "oklch(0.7 0.18 320)" },
   },
   {
     accession: "PP-008",
@@ -454,7 +446,6 @@ const COMPOUND_PHOTO: Record<string, string> = {
   semax: "Semax-10mg.png",
   selank: "Selank-10mg.png",
   tesamorelin: "Tesamorelin-5mg.png",
-  epitalon: "Epitalon-10mg.png",
   "mots-c": "MOTSc.png",
   wolverine: "wolverine.png",
   "cjc-1295-ipamorelin": "cjc-1295-ipamorelin.png",

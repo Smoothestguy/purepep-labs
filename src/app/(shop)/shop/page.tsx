@@ -1,5 +1,9 @@
 import type { Metadata } from "next";
 import { compounds, categories } from "@/lib/compounds";
+
+// Derived, not written down: the copy said "eight" long after the catalog
+// had grown past twenty.
+const CATALOG_COUNT = compounds.length;
 import { ProductCard } from "@/components/shop/product-card";
 import { ProductGrid } from "@/components/shop/product-grid";
 import { CategoryTabs } from "@/components/shop/category-tabs";
@@ -7,7 +11,7 @@ import { CategoryTabs } from "@/components/shop/category-tabs";
 export const metadata: Metadata = {
   title: "Catalog — The Pure Pep",
   description:
-    "Eight live-maintained peptide monographs. HPLC-verified, lot-traceable, shipped with a third-party Certificate of Analysis.",
+    "Live-maintained peptide monographs. HPLC-verified, lot-traceable, shipped with a third-party Certificate of Analysis.",
 };
 
 type SearchParams = Promise<{
@@ -75,7 +79,7 @@ export default async function ShopPage({
               The archive
               <span className="italic font-light text-muted-foreground">
                 {" "}
-                — eight monographs,
+                — {CATALOG_COUNT} monographs,
               </span>
               <br />
               each{" "}

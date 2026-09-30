@@ -10,6 +10,8 @@ export type CoaRow = {
   purity: string;
   date: string;
   lab: string;
+  /** Path to the signed PDF, when one exists for this lot. */
+  pdf?: string;
 };
 
 export function CoaArchive({ rows }: { rows: CoaRow[] }) {
@@ -27,9 +29,11 @@ export function CoaArchive({ rows }: { rows: CoaRow[] }) {
     );
   }, [q, rows]);
 
-  const handleDownload = (lot: string) => {
-    toast.info("CoA PDFs are generated in Phase 2.", {
-      description: `Lot ${lot} — signature not yet available.`,
+  // Lots without a PDF say so rather than silently doing nothing. A row
+  // only carries a `pdf` when a real file is on disk for it.
+  const handleMissing = (lot: string) => {
+    toast.info("No PDF on file for this lot yet.", {
+      description: `Lot ${lot} — email support@thepurepep.com and we'll send it.`,
     });
   };
 
@@ -170,20 +174,38 @@ export function CoaArchive({ rows }: { rows: CoaRow[] }) {
 
               {/* Action */}
               <div className="col-start-2 row-start-1 flex justify-end md:col-auto md:row-auto">
-                <button
-                  type="button"
-                  onClick={() => handleDownload(r.lot)}
-                  className="inline-flex items-center gap-1.5 border border-hairline font-mono tracking-[0.25em] uppercase text-foreground transition-colors hover:border-foreground hover:bg-background"
-                  style={{
-                    paddingInline: "clamp(0.6rem, 1vw, 0.8rem)",
-                    paddingBlock: "clamp(0.35rem, 0.6vw, 0.5rem)",
-                    fontSize: "clamp(9px, 0.25vw + 8px, 10px)",
-                  }}
-                  aria-label={`Download CoA PDF for lot ${r.lot}`}
-                >
-                  <span className="size-1 rounded-full bg-brand" />
-                  PDF
-                </button>
+                {r.pdf ? (
+                  <a
+                    href={r.pdf}
+                    target="_blank"
+                    rel="noopener"
+                    className="inline-flex items-center gap-1.5 border border-hairline font-mono tracking-[0.25em] uppercase text-foreground transition-colors hover:border-foreground hover:bg-background"
+                    style={{
+                      paddingInline: "clamp(0.6rem, 1vw, 0.8rem)",
+                      paddingBlock: "clamp(0.35rem, 0.6vw, 0.5rem)",
+                      fontSize: "clamp(9px, 0.25vw + 8px, 10px)",
+                    }}
+                    aria-label={`Open CoA PDF for lot ${r.lot}`}
+                  >
+                    <span className="size-1 rounded-full bg-brand" />
+                    PDF
+                  </a>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => handleMissing(r.lot)}
+                    className="inline-flex items-center gap-1.5 border border-hairline font-mono tracking-[0.25em] uppercase text-muted-foreground transition-colors hover:border-foreground"
+                    style={{
+                      paddingInline: "clamp(0.6rem, 1vw, 0.8rem)",
+                      paddingBlock: "clamp(0.35rem, 0.6vw, 0.5rem)",
+                      fontSize: "clamp(9px, 0.25vw + 8px, 10px)",
+                    }}
+                    aria-label={`No CoA PDF on file for lot ${r.lot}`}
+                  >
+                    <span className="size-1 rounded-full bg-muted-foreground/50" />
+                    PDF
+                  </button>
+                )}
               </div>
             </div>
           ))

@@ -48,7 +48,7 @@ function buildRows(): CoaRow[] {
     const lab = labFor(c.accession);
     const purityStr = `${c.purity.toFixed(2)}%`;
 
-    // Current lot
+    // Current lot — the only one a real PDF is ever attached to.
     rows.push({
       lot: v.lot,
       compound: c.name,
@@ -56,6 +56,7 @@ function buildRows(): CoaRow[] {
       purity: purityStr,
       date: v.coaDate.replaceAll("-", "."),
       lab,
+      pdf: v.coaPdf ? `/coa/${v.coaPdf}` : undefined,
     });
 
     // Three historical lots, stepping back roughly monthly with varying step sizes

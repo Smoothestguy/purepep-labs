@@ -33,7 +33,7 @@ export function CompoundIndex() {
               The archive
               <span className="italic font-light text-muted-foreground">
                 {" "}
-                — eight entries,
+                — {compounds.length} entries,
               </span>
               <br />
               each <span className="italic text-gradient-brand">reproducible.</span>

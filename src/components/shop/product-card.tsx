@@ -145,8 +145,26 @@ export function ProductCard({ compound: c }: Props) {
         </div>
       </div>
 
-      {/* Variant chips — only if multi-variant. Sits above the stretched
-          link via z-10 so chip clicks don't navigate. */}
+      {/* Size. Multi-variant products get selectable chips; single-variant
+          ones get a static badge, so every card states its fill. */}
+      {!hasMulti && (
+        <div
+          className="flex flex-wrap gap-1.5"
+          aria-label="Vial size"
+        >
+          <span
+            className="border border-hairline font-mono tracking-[0.15em] uppercase text-foreground"
+            style={{
+              fontSize: "clamp(9.5px, 0.25vw + 8.5px, 10.5px)",
+              paddingInline: "clamp(0.5rem, 0.9vw, 0.7rem)",
+              paddingBlock: "clamp(0.3rem, 0.5vw, 0.4rem)",
+            }}
+          >
+            {variant.dose}
+          </span>
+        </div>
+      )}
+
       {hasMulti && (
         <div
           className="relative z-10 flex flex-wrap gap-1.5"

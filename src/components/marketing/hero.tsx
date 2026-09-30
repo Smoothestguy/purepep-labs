@@ -137,7 +137,7 @@ export function Hero() {
             }}
           >
             <Link
-              href="#catalog"
+              href="/shop"
               className="group inline-flex items-center gap-3 whitespace-nowrap font-mono uppercase transition-all hover:shadow-[0_0_0_4px_oklch(0.82_0.15_210_/_0.22)]"
               style={{
                 background: "oklch(0.82 0.15 210)",
@@ -154,7 +154,7 @@ export function Hero() {
               </span>
             </Link>
             <Link
-              href="#coa"
+              href="/coa"
               className="group inline-flex items-center gap-3 whitespace-nowrap font-mono uppercase transition-colors hover:border-white"
               style={{
                 border: "1px solid oklch(1 0 0 / 0.22)",
