@@ -3,7 +3,6 @@ import Image from "next/image";
 import Link from "next/link";
 import {
   COA_IMAGE_SIZE,
-  COA_VERIFY_URL,
   coaImageSrc,
   coaPdfSrc,
   compoundPhotoSrc,
@@ -15,7 +14,7 @@ import { CertificateLibrary, type CertRecord } from "./certificate-library";
 export const metadata: Metadata = {
   title: "Certificate library — The Pure Pep",
   description:
-    "Independent HPLC certificates from ILS Laboratories for every lot we sell, each with the code to verify it on the lab's own portal.",
+    "Independent HPLC certificates from ILS Laboratories for every lot we sell, published in full.",
   alternates: { canonical: "/coa" },
 };
 
@@ -79,10 +78,6 @@ const READING: Array<{ term: string; def: string }> = [
     term: "Endotoxin",
     def: "Bacterial endotoxin by USP <85>, reported in EU/mL on lots where it was run. The lab reports a value rather than a pass or fail for research material.",
   },
-  {
-    term: "COA number & access code",
-    def: "Printed on each certificate. Enter both on the ILS portal to confirm the document against the lab's own record.",
-  },
 ];
 
 export default function CoaPage() {
@@ -131,8 +126,8 @@ export default function CoaPage() {
               style={{ fontSize: "clamp(0.95rem, 0.4vw + 0.85rem, 1.125rem)" }}
             >
               Every lot we sell is tested by ILS Laboratories before it ships.
-              Here is each certificate in full — and the code to confirm it
-              on the lab&rsquo;s own portal, without going through us.
+              Here is each certificate in full — purity, identity, content
+              and screening, lot by lot.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <a
@@ -207,54 +202,16 @@ export default function CoaPage() {
             certificate, it is here.
           </p>
           <div className="mt-8">
-            <CertificateLibrary records={records} verifyUrl={COA_VERIFY_URL} />
+            <CertificateLibrary records={records} />
           </div>
         </div>
 
-        {/* How to verify */}
+        {/* Who tests */}
         <div
           className="mt-[clamp(3.5rem,6vw,6rem)] border-t border-hairline"
           style={{ paddingTop: "clamp(1.75rem, 2.5vw, 2.5rem)" }}
         >
-          <SectionHead index="04.3" label="Verify it yourself" />
-          <ol className="mt-8 grid gap-px bg-hairline md:grid-cols-3">
-            {[
-              {
-                n: "01",
-                t: "Read the lot",
-                d: "Every vial label carries its lot number. Enter it in the lookup above.",
-              },
-              {
-                n: "02",
-                t: "Copy the codes",
-                d: "Each certificate card shows its COA number and access code. Tap Copy.",
-              },
-              {
-                n: "03",
-                t: "Ask the lab",
-                d: "Enter both at portal.ils-lab.com. The lab confirms the document from its own records.",
-              },
-            ].map((s) => (
-              <li
-                key={s.n}
-                className="flex flex-col gap-2 bg-background"
-                style={{ padding: "clamp(1.25rem, 2vw, 1.75rem)" }}
-              >
-                <span className="font-mono tracking-[0.3em] text-brand" style={{ fontSize: "11px" }}>
-                  {s.n}
-                </span>
-                <span className="font-display leading-[1.05]" style={{ fontSize: "clamp(1.3rem, 2vw, 1.6rem)" }}>
-                  {s.t}
-                </span>
-                <span
-                  className="font-sans leading-relaxed text-muted-foreground"
-                  style={{ fontSize: "clamp(0.86rem, 0.25vw + 0.8rem, 0.95rem)" }}
-                >
-                  {s.d}
-                </span>
-              </li>
-            ))}
-          </ol>
+          <SectionHead index="04.3" label="Who tests" />
           <p
             className="mt-6 max-w-2xl font-sans leading-relaxed text-muted-foreground"
             style={{ fontSize: "clamp(0.86rem, 0.25vw + 0.8rem, 0.95rem)" }}

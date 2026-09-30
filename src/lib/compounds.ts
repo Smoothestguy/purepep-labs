@@ -15,9 +15,6 @@ export type Assay = {
   endotoxin?: string;
 };
 
-/** Where every certificate's COA number and access code can be checked. */
-export const COA_VERIFY_URL = "https://portal.ils-lab.com";
-
 export type Variant = {
   /** Display label for the dose, e.g. "10 mg", "5 mg + 5 mg", "10 mL". */
   dose: string;

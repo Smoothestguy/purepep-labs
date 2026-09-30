@@ -3,7 +3,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { toast } from "sonner";
 
 export type CertRecord = {
   lot: string;
@@ -38,13 +37,7 @@ function normaliseLot(s: string): string {
  * The searchable certificate library: a lot lookup for someone holding a
  * vial, compound filters, and one card per certified lot.
  */
-export function CertificateLibrary({
-  records,
-  verifyUrl,
-}: {
-  records: CertRecord[];
-  verifyUrl: string;
-}) {
+export function CertificateLibrary({ records }: { records: CertRecord[] }) {
   const [query, setQuery] = useState("");
   const [compound, setCompound] = useState<string | null>(null);
   const [viewing, setViewing] = useState<CertRecord | null>(null);
@@ -161,7 +154,6 @@ export function CertificateLibrary({
             key={r.lot}
             record={r}
             highlighted={exact?.lot === r.lot}
-            verifyUrl={verifyUrl}
             onView={() => setViewing(r)}
           />
         ))}
@@ -208,12 +200,10 @@ function FilterChip({
 function CertCard({
   record: r,
   highlighted,
-  verifyUrl,
   onView,
 }: {
   record: CertRecord;
   highlighted: boolean;
-  verifyUrl: string;
   onView: () => void;
 }) {
   const ref = useRef<HTMLElement>(null);
@@ -243,17 +233,6 @@ function CertCard({
   }
   rows.push({ k: "Fentanyl", v: "Not detected" });
   if (r.endotoxin) rows.push({ k: "Endotoxin", v: r.endotoxin });
-
-  const copy = async () => {
-    try {
-      await navigator.clipboard.writeText(`${r.coaNumber} ${r.accessCode}`);
-      toast.success("Copied", {
-        description: "Paste both into the ILS portal to verify.",
-      });
-    } catch {
-      toast.info(`${r.coaNumber} · ${r.accessCode}`);
-    }
-  };
 
   return (
     <article
@@ -343,47 +322,6 @@ function CertCard({
           </div>
         ))}
       </dl>
-
-      {/* Verify with the lab */}
-      <div className="mt-4 border border-dashed border-hairline bg-surface/40 p-3">
-        <div className="flex items-center justify-between gap-2">
-          <span
-            className="font-mono tracking-[0.2em] uppercase text-muted-foreground"
-            style={{ fontSize: "9px" }}
-          >
-            Verify with {r.lab}
-          </span>
-          <a
-            href={verifyUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="shrink-0 whitespace-nowrap font-mono tracking-[0.15em] uppercase text-brand hover:underline"
-            style={{ fontSize: "9.5px" }}
-          >
-            Open portal ↗
-          </a>
-        </div>
-        <div className="mt-2 flex items-center justify-between gap-2">
-          <div
-            className="min-w-0 font-mono tracking-[0.08em] text-foreground"
-            style={{ fontSize: "clamp(11px, 0.25vw + 10px, 12px)" }}
-          >
-            <div className="truncate">{r.coaNumber}</div>
-            <div className="truncate text-muted-foreground">
-              Code <span className="text-foreground">{r.accessCode}</span>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={copy}
-            className="shrink-0 border border-hairline px-2.5 py-1.5 font-mono tracking-[0.2em] uppercase text-muted-foreground transition-colors hover:border-foreground hover:text-foreground"
-            style={{ fontSize: "9.5px" }}
-            aria-label={`Copy certificate number and access code for lot ${r.lot}`}
-          >
-            Copy
-          </button>
-        </div>
-      </div>
 
       {/* Actions */}
       <div className="mt-4 grid grid-cols-[1fr_auto] gap-2 pt-1 sm:mt-auto sm:pt-4">
