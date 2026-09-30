@@ -50,43 +50,27 @@ export function CompoundIndex() {
         </div>
       </div>
 
-      {/* Full table header — xl+ */}
-      <div
-        className="mx-auto hidden w-full max-w-[var(--content-max)] items-center border-y border-hairline bg-background pad-x xl:grid"
-        style={{
-          gridTemplateColumns: "80px minmax(0,1.6fr) minmax(0,1fr) minmax(0,0.8fr) 110px 140px",
-          gap: "clamp(1rem, 1.5vw, 1.5rem)",
-          paddingBlock: "clamp(0.6rem, 0.8vw, 0.85rem)",
-          fontSize: "clamp(9.5px, 0.25vw + 8.5px, 10px)",
-        }}
-      >
-        <div className="font-mono tracking-[0.25em] uppercase text-muted-foreground">№</div>
-        <div className="font-mono tracking-[0.25em] uppercase text-muted-foreground">Compound</div>
-        <div className="font-mono tracking-[0.25em] uppercase text-muted-foreground">Sequence</div>
-        <div className="font-mono tracking-[0.25em] uppercase text-muted-foreground">MW · Purity</div>
-        <div className="text-right font-mono tracking-[0.25em] uppercase text-muted-foreground">Stock</div>
-        <div className="text-right font-mono tracking-[0.25em] uppercase text-muted-foreground">USD</div>
-      </div>
-
-      {/* Compact header — md–lg */}
-      <div
-        className="mx-auto hidden w-full max-w-[var(--content-max)] items-center border-y border-hairline bg-background pad-x md:grid xl:hidden"
-        style={{
-          gridTemplateColumns: "64px minmax(0,2fr) minmax(0,1fr) 100px 110px",
-          gap: "clamp(0.875rem, 1.5vw, 1.25rem)",
-          paddingBlock: "clamp(0.6rem, 0.8vw, 0.85rem)",
-          fontSize: "clamp(9.5px, 0.25vw + 8.5px, 10px)",
-        }}
-      >
-        <div className="font-mono tracking-[0.25em] uppercase text-muted-foreground">№</div>
-        <div className="font-mono tracking-[0.25em] uppercase text-muted-foreground">Compound</div>
-        <div className="font-mono tracking-[0.25em] uppercase text-muted-foreground">Purity</div>
-        <div className="text-right font-mono tracking-[0.25em] uppercase text-muted-foreground">Stock</div>
-        <div className="text-right font-mono tracking-[0.25em] uppercase text-muted-foreground">USD</div>
+      {/* Column header.
+          Repeated over each column at xl, where the list runs two-up — a
+          single header cannot label two independent grids. */}
+      <div className="mx-auto hidden w-full max-w-[var(--content-max)] border-y border-hairline bg-background pad-x md:block">
+        <div
+          className="grid xl:grid-cols-2"
+          style={{ columnGap: "clamp(1.5rem, 3vw, 3rem)" }}
+        >
+          <ColumnHeader />
+          <div className="hidden xl:block">
+            <ColumnHeader />
+          </div>
+        </div>
       </div>
 
       {/* Rows */}
       <div className="mx-auto w-full max-w-[var(--content-max)] pad-x">
+        <div
+          className="grid xl:grid-cols-2"
+          style={{ columnGap: "clamp(1.5rem, 3vw, 3rem)" }}
+        >
         {compounds.map((c, i) => {
           const v = defaultVariant(c);
           return (
@@ -180,7 +164,7 @@ export function CompoundIndex() {
 
             {/* MD–LG compact */}
             <div
-              className="hidden items-center md:grid xl:hidden"
+              className="hidden items-center md:grid"
               style={{
                 gridTemplateColumns: "64px minmax(0,2fr) minmax(0,1fr) 100px 110px",
                 gap: "clamp(0.875rem, 1.5vw, 1.25rem)",
@@ -255,91 +239,10 @@ export function CompoundIndex() {
               </div>
             </div>
 
-            {/* XL+ full */}
-            <div
-              className="hidden items-center xl:grid"
-              style={{
-                gridTemplateColumns: "80px minmax(0,1.6fr) minmax(0,1fr) minmax(0,0.8fr) 110px 140px",
-                gap: "clamp(1rem, 1.5vw, 1.5rem)",
-                paddingBlock: "clamp(1.5rem, 2.2vw, 1.9rem)",
-              }}
-            >
-              <div
-                className="flex flex-col gap-1 font-mono tracking-[0.2em] uppercase"
-                style={{ fontSize: "clamp(10px, 0.3vw + 9px, 11px)" }}
-              >
-                <span className="text-foreground">{c.accession}</span>
-                <span className="text-muted-foreground" style={{ fontSize: "clamp(9px, 0.2vw + 8.5px, 10px)" }}>
-                  {String(i + 1).padStart(2, "0")} / {compounds.length}
-                </span>
-              </div>
-              <div className="min-w-0">
-                <div className="flex items-baseline" style={{ gap: "clamp(0.5rem,1vw,0.85rem)" }}>
-                  <h3
-                    className="font-display leading-none tracking-tight text-foreground transition-colors group-hover:text-brand"
-                    style={{ fontSize: "clamp(2rem, 3vw, 2.5rem)" }}
-                  >
-                    {c.name}
-                  </h3>
-                  <span
-                    className="whitespace-nowrap font-mono tracking-[0.22em] uppercase text-muted-foreground"
-                    style={{ fontSize: "clamp(9px, 0.2vw + 8.5px, 10px)" }}
-                  >
-                    {c.family}
-                  </span>
-                </div>
-                <p
-                  className="mt-2 max-w-md font-sans leading-relaxed text-muted-foreground"
-                  style={{ fontSize: "clamp(0.83rem, 0.3vw + 0.75rem, 0.9rem)" }}
-                >
-                  {c.blurb}
-                </p>
-              </div>
-              <div
-                className="min-w-0 font-mono leading-relaxed tracking-[0.08em] text-foreground/80"
-                style={{ fontSize: "clamp(10px, 0.3vw + 9px, 11px)" }}
-              >
-                <div className="truncate">{c.sequence}</div>
-                <div className="mt-1 text-muted-foreground">Lot {v.lot}</div>
-              </div>
-              <div
-                className="font-mono tracking-[0.1em]"
-                style={{ fontSize: "clamp(10px, 0.3vw + 9px, 11px)" }}
-              >
-                <div className="text-foreground">{c.molecularWeight} g/mol</div>
-                <div className="mt-1 text-brand">{c.purity}% purity</div>
-              </div>
-              <div
-                className="text-right font-mono tracking-[0.1em]"
-                style={{ fontSize: "clamp(10px, 0.3vw + 9px, 11px)" }}
-              >
-                <div className="flex items-center justify-end gap-2">
-                  <span
-                    className={`size-1.5 rounded-full ${
-                      v.inStock > 100 ? "bg-brand" : "bg-muted-foreground"
-                    }`}
-                  />
-                  <span className="text-foreground">{v.inStock}</span>
-                </div>
-                <div
-                  className="mt-1 uppercase tracking-[0.2em] text-muted-foreground"
-                  style={{ fontSize: "clamp(9px, 0.2vw + 8.5px, 10px)" }}
-                >
-                  {v.dose} fill
-                </div>
-              </div>
-              <div className="flex justify-end">
-                <GatedPrice
-                  value={v.price}
-                  fontSize="clamp(2rem, 3vw, 2.5rem)"
-                  labelFontSize="clamp(9px, 0.2vw + 8.5px, 10px)"
-                  interactive={false}
-                />
-              </div>
-            </div>
           </Link>
           );
         })}
+        </div>
       </div>
 
       <div
@@ -353,5 +256,26 @@ export function CompoundIndex() {
         ∗ For laboratory research use only. Not for human consumption.
       </div>
     </section>
+  );
+}
+
+/** One set of column labels, matching the compact row's grid exactly. */
+function ColumnHeader() {
+  return (
+    <div
+      className="grid items-center"
+      style={{
+        gridTemplateColumns: "64px minmax(0,2fr) minmax(0,1fr) 100px 110px",
+        gap: "clamp(0.875rem, 1.5vw, 1.25rem)",
+        paddingBlock: "clamp(0.6rem, 0.8vw, 0.85rem)",
+        fontSize: "clamp(9.5px, 0.25vw + 8.5px, 10px)",
+      }}
+    >
+      <div className="font-mono tracking-[0.25em] uppercase text-muted-foreground">№</div>
+      <div className="font-mono tracking-[0.25em] uppercase text-muted-foreground">Compound</div>
+      <div className="font-mono tracking-[0.25em] uppercase text-muted-foreground">Purity</div>
+      <div className="text-right font-mono tracking-[0.25em] uppercase text-muted-foreground">Stock</div>
+      <div className="text-right font-mono tracking-[0.25em] uppercase text-muted-foreground">USD</div>
+    </div>
   );
 }
