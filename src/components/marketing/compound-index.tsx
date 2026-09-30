@@ -68,8 +68,8 @@ export function CompoundIndex() {
       {/* Rows */}
       <div className="mx-auto w-full max-w-[var(--content-max)] pad-x">
         <div
-          className="grid xl:grid-cols-2"
-          style={{ columnGap: "clamp(1.5rem, 3vw, 3rem)" }}
+          className="grid grid-cols-2 md:grid-cols-1 xl:grid-cols-2"
+          style={{ columnGap: "clamp(0.75rem, 3vw, 3rem)" }}
         >
         {compounds.map((c, i) => {
           const v = defaultVariant(c);
@@ -87,13 +87,13 @@ export function CompoundIndex() {
                 paddingBlock: "clamp(1.25rem, 3vw, 1.75rem)",
               }}
             >
-              <div className="flex items-start justify-between gap-4">
+              <div className="flex flex-col items-start gap-1 sm:flex-row sm:justify-between sm:gap-4">
                 <div
                   className="flex items-baseline gap-3 font-mono tracking-[0.22em] uppercase text-muted-foreground"
                   style={{ fontSize: "clamp(10px, 0.3vw + 9px, 11px)" }}
                 >
                   <span className="text-foreground">{c.accession}</span>
-                  <span>
+                  <span className="hidden sm:inline">
                     {String(i + 1).padStart(2, "0")} / {compounds.length}
                   </span>
                 </div>
@@ -113,7 +113,7 @@ export function CompoundIndex() {
               <div>
                 <h3
                   className="font-display leading-none tracking-tight text-foreground transition-colors group-hover:text-brand"
-                  style={{ fontSize: "clamp(1.9rem, 6vw, 2.5rem)" }}
+                  style={{ fontSize: "clamp(1.2rem, 6vw, 2.5rem)" }}
                 >
                   {c.name}
                 </h3>
@@ -125,13 +125,13 @@ export function CompoundIndex() {
                 </div>
               </div>
               <p
-                className="font-sans leading-relaxed text-muted-foreground"
+                className="hidden font-sans leading-relaxed text-muted-foreground xl:block"
                 style={{ fontSize: "clamp(0.83rem, 0.25vw + 0.75rem, 0.9rem)" }}
               >
                 {c.blurb}
               </p>
               <div
-                className="grid grid-cols-2 border-t border-hairline font-mono leading-relaxed tracking-[0.06em] text-foreground/80"
+                className="hidden grid-cols-2 border-t border-hairline font-mono leading-relaxed tracking-[0.06em] text-foreground/80 xl:grid"
                 style={{
                   gap: "clamp(0.65rem, 1.5vw, 0.85rem)",
                   paddingTop: "clamp(0.875rem, 1.5vw, 1.1rem)",
