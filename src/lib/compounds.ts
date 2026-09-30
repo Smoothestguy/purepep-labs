@@ -37,11 +37,17 @@ export type Compound = {
    * saved carts keep resolving.
    */
   slug?: string;
+  /**
+   * Marked by the business from its own sales. Deliberately a manual flag:
+   * there is no order history to rank from yet, and a best-seller label
+   * nobody chose would be a claim with nothing behind it.
+   */
+  bestSeller?: boolean;
   codename: string;
   sequence: string;
   molecularWeight: number;
   purity: number;
-  category: "structural" | "metabolic" | "nootropic" | "senescence";
+  category: "structural" | "receptor" | "shortchain" | "complex";
   family: string;
   blurb: string;
   /** At least one variant; first entry is the default the card surfaces. */
@@ -58,7 +64,7 @@ export const compounds: Compound[] = [
   {
     accession: "PP-001",
     name: "BPC-157",
-    codename: "Body Protective Compound",
+    codename: "Gastric-Derived Pentadecapeptide",
     sequence: "GEPPPGKPADDAGLV",
     molecularWeight: 1419.53,
     purity: 99.42,
@@ -94,7 +100,7 @@ export const compounds: Compound[] = [
     sequence: "GHK · Cu²⁺",
     molecularWeight: 402.92,
     purity: 99.68,
-    category: "senescence",
+    category: "complex",
     family: "Copper tripeptide",
     blurb: "Endogenous tripeptide–copper complex. Royal blue lyophilisate.",
     variants: [
@@ -106,11 +112,11 @@ export const compounds: Compound[] = [
   {
     accession: "PP-004",
     name: "Semax",
-    codename: "Heptapeptide Nootropic",
+    codename: "ACTH-Fragment Heptapeptide",
     sequence: "MEHFPGP",
     molecularWeight: 813.93,
     purity: 99.05,
-    category: "nootropic",
+    category: "shortchain",
     family: "ACTH analogue",
     blurb:
       "Synthetic analogue of ACTH(4-10). Sequence conserved from the endogenous ACTH fragment.",
@@ -122,11 +128,11 @@ export const compounds: Compound[] = [
   {
     accession: "PP-005",
     name: "Selank",
-    codename: "Anxiolytic Heptapeptide",
+    codename: "Tuftsin-Derived Heptapeptide",
     sequence: "TKPRPGP",
     molecularWeight: 751.87,
     purity: 99.24,
-    category: "nootropic",
+    category: "shortchain",
     family: "Tuftsin analogue",
     blurb: "Tuftsin analogue. Stored at −20 °C; thaw once only.",
     variants: [
@@ -141,7 +147,7 @@ export const compounds: Compound[] = [
     sequence: "44 aa",
     molecularWeight: 5135.85,
     purity: 99.03,
-    category: "metabolic",
+    category: "receptor",
     family: "Peptide analogue",
     blurb: "Stabilised 44-residue peptide analogue. Amber glass, N₂ headspace.",
     variants: [
@@ -157,7 +163,7 @@ export const compounds: Compound[] = [
     sequence: "MRWQEMGYIFYPRKLR",
     molecularWeight: 2174.58,
     purity: 99.19,
-    category: "metabolic",
+    category: "receptor",
     family: "Mitochondrial peptide",
     blurb:
       "16-residue peptide encoded within the mitochondrial 12S rRNA region.",
@@ -196,7 +202,7 @@ export const compounds: Compound[] = [
     molecularWeight: 0,
     purity: 99,
     category: "structural",
-    family: "Recovery blend",
+    family: "Peptide blend",
     blurb:
       "Co-lyophilised blend of BPC-157 and TB-500 in a single vial.",
     variants: [
@@ -212,7 +218,7 @@ export const compounds: Compound[] = [
     sequence: "TBD",
     molecularWeight: 0,
     purity: 99,
-    category: "metabolic",
+    category: "receptor",
     family: "Peptide blend",
     blurb: "CJC-1295 (no-DAC) paired with Ipamorelin. Co-lyophilised.",
     variants: [
@@ -228,7 +234,7 @@ export const compounds: Compound[] = [
     sequence: "TBD",
     molecularWeight: 0,
     purity: 99,
-    category: "metabolic",
+    category: "receptor",
     family: "Tri-agonist",
     blurb: "GLP-1 / GIP / glucagon triple receptor agonist. Lyophilised.",
     variants: [
@@ -247,7 +253,7 @@ export const compounds: Compound[] = [
     sequence: "TBD",
     molecularWeight: 0,
     purity: 99,
-    category: "metabolic",
+    category: "receptor",
     family: "Dual agonist",
     blurb: "GLP-1 / GIP dual receptor agonist. Lyophilised.",
     variants: [
@@ -259,13 +265,13 @@ export const compounds: Compound[] = [
   {
     accession: "PP-014",
     name: "GLOW 70",
-    codename: "Aesthetic Blend",
+    codename: "Multi-Peptide Blend",
     sequence: "TBD",
     molecularWeight: 0,
     purity: 99,
-    category: "senescence",
-    family: "Aesthetic blend",
-    blurb: "Multi-peptide aesthetic / skin blend. 70 mg total.",
+    category: "complex",
+    family: "Peptide blend",
+    blurb: "Multi-peptide blend. 70 mg total.",
     variants: [
       { dose: "70 mg", price: 69.99, inStock: 60, lot: "TBD", coaDate: "TBD" },
     ],
@@ -279,7 +285,7 @@ export const compounds: Compound[] = [
     sequence: "TBD",
     molecularWeight: 0,
     purity: 99,
-    category: "metabolic",
+    category: "receptor",
     family: "Pentapeptide",
     blurb: "Selective synthetic pentapeptide. Lyophilised.",
     variants: [
@@ -291,13 +297,13 @@ export const compounds: Compound[] = [
   {
     accession: "PP-016",
     name: "KPV",
-    codename: "Anti-Inflammatory Tripeptide",
+    codename: "α-MSH C-Terminal Tripeptide",
     sequence: "KPV",
     molecularWeight: 0,
     purity: 99,
     category: "structural",
     family: "α-MSH fragment",
-    blurb: "C-terminal tripeptide of α-MSH. Anti-inflammatory.",
+    blurb: "C-terminal tripeptide of α-MSH. Lyophilised.",
     variants: [
       { dose: "10 mg", price: 24.99, inStock: 200, lot: "TBD", coaDate: "TBD" },
     ],
@@ -311,7 +317,7 @@ export const compounds: Compound[] = [
     sequence: "TBD",
     molecularWeight: 0,
     purity: 99,
-    category: "metabolic",
+    category: "receptor",
     family: "Dual agonist",
     blurb: "GLP-1 / glucagon dual receptor agonist. Lyophilised.",
     variants: [
@@ -327,7 +333,7 @@ export const compounds: Compound[] = [
     sequence: "Small molecule",
     molecularWeight: 0,
     purity: 99,
-    category: "metabolic",
+    category: "receptor",
     family: "Small molecule",
     blurb: "5-amino-1-methylquinolinium iodide. NNMT inhibitor.",
     variants: [
@@ -343,8 +349,8 @@ export const compounds: Compound[] = [
     sequence: "γ-ECG",
     molecularWeight: 0,
     purity: 99,
-    category: "senescence",
-    family: "Tripeptide antioxidant",
+    category: "complex",
+    family: "Thiol tripeptide",
     blurb: "Reduced glutathione (GSH). 1.5 g per vial.",
     variants: [
       { dose: "1500 mg", price: 39.99, inStock: 100, lot: "TBD", coaDate: "TBD" },
@@ -359,7 +365,7 @@ export const compounds: Compound[] = [
     sequence: "TBD",
     molecularWeight: 0,
     purity: 99,
-    category: "nootropic",
+    category: "shortchain",
     family: "Melanocortin agonist",
     blurb: "Melanocortin receptor agonist. Cyclic heptapeptide.",
     variants: [
@@ -391,9 +397,9 @@ export const compounds: Compound[] = [
     sequence: "TBD",
     molecularWeight: 0,
     purity: 99,
-    category: "senescence",
+    category: "complex",
     family: "Melanocortin agonist",
-    blurb: "Cyclic α-MSH analogue. Pigmentation peptide.",
+    blurb: "Cyclic α-MSH analogue. Lyophilised.",
     variants: [
       { dose: "10 mg", price: 39.99, inStock: 140, lot: "TBD", coaDate: "TBD" },
     ],
@@ -401,12 +407,55 @@ export const compounds: Compound[] = [
   },
 ];
 
-export const categories = [
-  { key: "structural", label: "Structural" },
-  { key: "metabolic", label: "Metabolic" },
-  { key: "nootropic", label: "Nootropic" },
-  { key: "senescence", label: "Senescence" },
-] as const;
+/**
+ * Storefront filters.
+ *
+ * These replace the old Structural / Metabolic / Nootropic / Senescence
+ * tabs, which classified compounds by an effect in a body — exactly the
+ * framing a research-use catalogue has to avoid. Every filter here is
+ * derived from facts about the product itself (certification, whether
+ * it is a blend, whether it is a reagent), so none can drift out of step
+ * with the catalogue.
+ *
+ * The internal `category` field still exists; it only selects the
+ * monograph copy template on the product page and is never shown.
+ */
+export type CatalogFilter = {
+  key: string;
+  label: string;
+  match: (c: Compound) => boolean;
+};
+
+function isBlend(c: Compound): boolean {
+  return /blend/i.test(c.family);
+}
+
+function isSupply(c: Compound): boolean {
+  return /diluent/i.test(c.family);
+}
+
+export function catalogFilters(): CatalogFilter[] {
+  const filters: CatalogFilter[] = [
+    { key: "certified", label: "Certified · CoA", match: isCertified },
+    { key: "blends", label: "Blends", match: isBlend },
+    {
+      key: "peptides",
+      label: "Single compounds",
+      match: (c) => !isBlend(c) && !isSupply(c),
+    },
+    { key: "supplies", label: "Supplies", match: isSupply },
+  ];
+
+  // Only offered once the business has actually marked some.
+  if (compounds.some((c) => c.bestSeller)) {
+    filters.unshift({
+      key: "best-sellers",
+      label: "Best sellers",
+      match: (c) => Boolean(c.bestSeller),
+    });
+  }
+  return filters;
+}
 
 export function slugify(name: string): string {
   return name.toLowerCase().replaceAll(/\s+/g, "-");

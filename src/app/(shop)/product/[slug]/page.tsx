@@ -61,17 +61,17 @@ function monographParagraphs(c: Compound): string[] {
       `Every batch moves through the full Six-Step protocol — solid-phase Fmoc synthesis, TFA cleavage, reverse-phase HPLC purification, and ESI-TOF mass-spec confirmation. The lot shipped carries ≥ ${c.purity}% HPLC-MS purity with residual solvent and endotoxin assays signed by an independent laboratory.`,
       `Lyophilised vials are stable at −20 °C in their sealed amber container. In reconstitution solution, HPLC-verified purity holds for approximately four weeks under refrigeration; single-thaw only.`,
     ],
-    metabolic: [
+    receptor: [
       `${c.blurb} ${c.name} belongs to the ${c.family.toLowerCase()} class and is prepared at a ${defaultVariant(c).dose} fill per vial for laboratory titration work.`,
       `Material is synthesised on Rink-amide resin, cleaved with a standard TFA/TIPS/water cocktail, and purified on a C18 column to ≥ ${c.purity}%. Mass confirmation (ESI-TOF) and residual-solvent GC accompany every lot. Third-party counter-assay is run on a blind aliquot before release.`,
       `Long-chain GHRH and mitochondrial-derived peptides are moisture-sensitive; keep frozen at −20 °C, thaw once, and protect from repeated freeze-thaw cycles.`,
     ],
-    nootropic: [
+    shortchain: [
       `${c.blurb} ${c.name} is a short ${c.family.toLowerCase()} presented as a freeze-dried solid with amber-glass packaging and argon-flushed headspace.`,
       `Synthesis uses Fmoc solid-phase chemistry with HBTU activation; crude peptide is precipitated in cold ether and polished by reverse-phase HPLC until purity floors at ${c.purity}%. Every lot leaves the bench with ESI-TOF, LAL endotoxin, and residual-solvent data attached.`,
       `Lyophilised material is stable frozen at −20 °C. In aqueous solution, HPLC purity holds refrigerated for roughly two weeks; single-thaw only, no repeated freeze-thaw cycles.`,
     ],
-    senescence: [
+    complex: [
       `${c.blurb} ${c.name} is supplied as a lyophilised solid at a ${defaultVariant(c).dose} fill, sealed in amber borosilicate with an argon headspace.`,
       `Our Six-Step protocol applies identically to tripeptides and tetrapeptides: SPPS synthesis, HPLC purification to ≥ ${c.purity}%, and ESI-TOF mass confirmation. Copper complexes additionally pass a UV-vis coordination check. Every lot ships with a CoA signed by a third-party analytical lab.`,
       `Sealed vials hold indefinitely at −20 °C. Short peptides are robust as dry solids; in aqueous solution, HPLC purity remains within spec for approximately four weeks under refrigeration.`,

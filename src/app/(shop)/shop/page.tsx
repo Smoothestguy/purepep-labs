@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { compounds, categories } from "@/lib/compounds";
+import { compounds, catalogFilters } from "@/lib/compounds";
 
 // Derived, not written down: the copy said "eight" long after the catalog
 // had grown past twenty.
@@ -18,11 +18,6 @@ type SearchParams = Promise<{
   category?: string | string[];
 }>;
 
-type CategoryKey = (typeof categories)[number]["key"];
-
-function isCategoryKey(value: string): value is CategoryKey {
-  return categories.some((c) => c.key === value);
-}
 
 export default async function ShopPage({
   searchParams,
@@ -33,12 +28,12 @@ export default async function ShopPage({
   const rawCategory = Array.isArray(resolved.category)
     ? resolved.category[0]
     : resolved.category;
-  const activeCategory =
-    rawCategory && isCategoryKey(rawCategory) ? rawCategory : undefined;
+  // Unknown keys — including the retired physiological ones in old links —
+  // fall back to the full catalogue rather than an empty page.
+  const activeFilter = catalogFilters().find((f) => f.key === rawCategory);
+  const activeCategory = activeFilter?.key;
 
-  const visible = activeCategory
-    ? compounds.filter((c) => c.category === activeCategory)
-    : compounds;
+  const visible = activeFilter ? compounds.filter(activeFilter.match) : compounds;
 
   return (
     <section className="relative border-b border-hairline">
