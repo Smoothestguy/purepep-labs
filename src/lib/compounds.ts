@@ -471,6 +471,35 @@ const COMPOUND_PHOTO: Record<string, string> = {
   "igf-1-lr3": "igf-1-lr3.png",
 };
 
+/** A lot is certified when a signed CoA PDF is on file for it. */
+export function isCertifiedVariant(v: Variant): boolean {
+  return Boolean(v.coaPdf);
+}
+
+/** Whether any lot of this compound has a certificate. */
+export function isCertified(c: Compound): boolean {
+  return c.variants.some(isCertifiedVariant);
+}
+
+/** The first certified variant, for surfacing a compound by its proof. */
+export function firstCertifiedVariant(c: Compound): Variant | undefined {
+  return c.variants.find(isCertifiedVariant);
+}
+
+export function coaPdfSrc(v: Variant): string | null {
+  return v.coaPdf ? `/coa/${v.coaPdf}` : null;
+}
+
+/**
+ * Page one of the certificate, rendered to JPEG alongside the PDF
+ * (same basename). Pixel size of every rendered page — letter at 1100px.
+ */
+export const COA_IMAGE_SIZE = { width: 1100, height: 1556 } as const;
+
+export function coaImageSrc(v: Variant): string | null {
+  return v.coaPdf ? `/coa/${v.coaPdf.replace(/\.pdf$/i, ".jpg")}` : null;
+}
+
 export function compoundHasPhoto(c: Compound): boolean {
   return compoundSlug(c) in COMPOUND_PHOTO;
 }

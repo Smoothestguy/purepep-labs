@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { compounds, compoundSlug, defaultVariant } from "@/lib/compounds";
+import { compounds, compoundSlug, defaultVariant, isCertified } from "@/lib/compounds";
 
 /** Catalogue entries still carry "TBD" and 0 placeholders; show a dash. */
 const fmtText = (v: string) => (!v || v === "TBD" ? "—" : v);
@@ -93,6 +93,11 @@ export function CompoundIndex() {
                   style={{ fontSize: "clamp(10px, 0.3vw + 9px, 11px)" }}
                 >
                   <span className="text-foreground">{c.accession}</span>
+                  {isCertified(c) ? (
+                    <span className="text-brand" title="Certificate of analysis on file">
+                      ✓ CoA
+                    </span>
+                  ) : null}
                   <span className="hidden sm:inline">
                     {String(i + 1).padStart(2, "0")} / {compounds.length}
                   </span>

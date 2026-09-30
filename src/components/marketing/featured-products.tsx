@@ -1,27 +1,24 @@
 import Link from "next/link";
-import { compounds } from "@/lib/compounds";
+import {
+  compounds,
+  firstCertifiedVariant,
+  isCertified,
+} from "@/lib/compounds";
 import { ProductCard } from "@/components/shop/product-card";
-import { ProductGrid } from "@/components/shop/product-grid";
 
 /**
- * Shoppable cards, high on the page.
+ * The homepage product grid: only compounds with a signed certificate.
  *
- * The homepage previously ran a full screen of hero copy, then a rail of
- * vials with no names or prices on it — the first card a visitor could
- * actually price and buy sat past 1,200px. This puts real products, with
- * photo, size, stock and price, directly under the hero.
+ * The homepage makes the testing promise, so what it features has to
+ * keep it. Each card opens on the dose that is actually certified — for
+ * GHK-Cu that is 100 mg, not the 50 mg default, which has no CoA yet.
  *
- * Eight is deliberate: two rows of four on a wide screen, enough to show
- * range without turning the homepage into the catalogue. The rest are one
- * click away.
+ * Grows on its own as certificates arrive: add `coaPdf` to a variant in
+ * lib/compounds and the compound appears here.
  */
-const FEATURED_COUNT = 8;
-
 export function FeaturedProducts() {
-  // First eight of the catalogue. Swap for a curated list once there is a
-  // real bestsellers ranking — picking favourites here without sales data
-  // would just be a guess dressed up as a recommendation.
-  const featured = compounds.slice(0, FEATURED_COUNT);
+  const featured = compounds.filter(isCertified);
+  if (featured.length === 0) return null;
 
   return (
     <section
@@ -44,7 +41,7 @@ export function FeaturedProducts() {
                 className="h-px shrink-0 bg-hairline"
                 style={{ width: "clamp(1.5rem, 3vw, 2.75rem)" }}
               />
-              <span>Shop</span>
+              <span>Certified lots</span>
             </div>
             <h2
               className="font-display leading-[0.95] tracking-[-0.02em]"
@@ -53,9 +50,19 @@ export function FeaturedProducts() {
                 fontSize: "clamp(1.9rem, 4.5vw, 3.25rem)",
               }}
             >
-              In stock,{" "}
+              Tested,{" "}
               <span className="italic text-gradient-brand">ships today.</span>
             </h2>
+            <p
+              className="max-w-md font-sans leading-relaxed text-muted-foreground"
+              style={{
+                marginTop: "clamp(0.6rem, 1vw, 0.85rem)",
+                fontSize: "clamp(0.85rem, 0.25vw + 0.8rem, 0.95rem)",
+              }}
+            >
+              Every compound here has a signed certificate from ILS
+              Laboratories, open on its product page.
+            </p>
           </div>
 
           <Link
@@ -77,12 +84,22 @@ export function FeaturedProducts() {
           </Link>
         </div>
 
-        <div style={{ marginTop: "clamp(1.5rem, 2.5vw, 2.25rem)" }}>
-          <ProductGrid>
-            {featured.map((c) => (
-              <ProductCard key={c.accession} compound={c} />
-            ))}
-          </ProductGrid>
+        <div
+          // Five across at xl so the current five certified compounds sit
+          // in one row rather than four plus an orphan.
+          className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5"
+          style={{
+            marginTop: "clamp(1.5rem, 2.5vw, 2.25rem)",
+            gap: "clamp(0.5rem, 1.2vw, 1.25rem)",
+          }}
+        >
+          {featured.map((c) => (
+            <ProductCard
+              key={c.accession}
+              compound={c}
+              initialDose={firstCertifiedVariant(c)?.dose}
+            />
+          ))}
         </div>
       </div>
     </section>

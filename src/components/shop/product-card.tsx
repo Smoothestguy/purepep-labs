@@ -7,15 +7,27 @@ import {
   compoundSlug,
   compoundHasPhoto,
   compoundPhotoSrc,
+  isCertifiedVariant,
 } from "@/lib/compounds";
 import { CompoundLabel } from "./compound-label";
 
 type Props = {
   compound: Compound;
+  /**
+   * Dose to open on. Lets a listing lead with a specific lot — the
+   * homepage uses it to show the dose that actually has a certificate,
+   * rather than the default dose that may not.
+   */
+  initialDose?: string;
 };
 
-export function ProductCard({ compound: c }: Props) {
-  const [selectedIdx, setSelectedIdx] = useState(0);
+export function ProductCard({ compound: c, initialDose }: Props) {
+  const [selectedIdx, setSelectedIdx] = useState(() => {
+    const i = initialDose
+      ? c.variants.findIndex((v) => v.dose === initialDose)
+      : -1;
+    return i >= 0 ? i : 0;
+  });
   const variant = c.variants[selectedIdx];
   const hasMulti = c.variants.length > 1;
   const hasPhoto = compoundHasPhoto(c);
@@ -43,6 +55,21 @@ export function ProductCard({ compound: c }: Props) {
           className="absolute inset-0 h-full w-full object-contain transition-transform duration-700 group-hover:scale-[1.03]"
           loading="lazy"
         />
+        {/* Certified lots say so on the photo, where it is seen first.
+            Reflects the selected dose — switching to an uncertified one
+            removes it rather than implying the whole compound is tested. */}
+        {isCertifiedVariant(variant) ? (
+          <span
+            className="absolute left-2 top-2 z-10 inline-flex items-center gap-1 border border-brand/60 bg-background/80 font-mono uppercase tracking-[0.18em] text-brand backdrop-blur"
+            style={{
+              fontSize: "clamp(8.5px, 0.25vw + 7.5px, 10px)",
+              paddingInline: "0.4rem",
+              paddingBlock: "0.2rem",
+            }}
+          >
+            <span aria-hidden>✓</span> CoA
+          </span>
+        ) : null}
         {!hasPhoto && (
           <div
             className="absolute"
