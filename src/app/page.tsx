@@ -1,6 +1,7 @@
 import { StatusBar } from "@/components/marketing/status-bar";
 import { SiteHeader } from "@/components/marketing/site-header";
 import { Hero } from "@/components/marketing/hero";
+import { InspectionCarousel } from "@/components/marketing/inspection-carousel";
 import { CompoundIndex } from "@/components/marketing/compound-index";
 import { Science } from "@/components/marketing/science";
 import { Manifesto } from "@/components/marketing/manifesto";
@@ -13,6 +14,7 @@ export default function Home() {
       <SiteHeader />
       <main className="flex-1">
         <Hero />
+        <InspectionCarousel />
         <CompoundIndex />
         <Science />
         <Manifesto />
