@@ -508,3 +508,77 @@ export async function lastShippingFor(
     return null;
   }
 }
+
+export type ReceiptOrder = {
+  ref: string;
+  status: OrderStatus;
+  paymentMethod: string | null;
+  email: string;
+  items: Array<{
+    name: string;
+    dose: string;
+    quantity: number;
+    /** Line price before any discount; the discount is shown on its own row. */
+    lineCents: number;
+  }>;
+  shipping: CheckoutShipping;
+  subtotalCents: number;
+  shippingCents: number;
+  discountCode: string | null;
+  discountCents: number;
+  totalCents: number;
+};
+
+/**
+ * One order, for the receipt page — read as the signed-in customer, so
+ * the orders_select_own policy means a guessed or shared order reference
+ * returns nothing for anyone but the buyer. Null when not found, not
+ * theirs, or signed out; the page then shows a generic thank-you.
+ */
+export async function orderForReceipt(ref: string): Promise<ReceiptOrder | null> {
+  try {
+    const supabase = await createServerClient();
+    const { data, error } = await supabase
+      .from("orders")
+      .select(
+        "order_ref, status, payment_method, email, items, shipping, subtotal_cents, shipping_cents, discount_code, discount_cents, total_cents",
+      )
+      .eq("order_ref", ref)
+      .maybeSingle();
+    if (error || !data) return null;
+
+    type StoredItem = {
+      name?: unknown;
+      dose?: unknown;
+      quantity?: unknown;
+      unit_price_cents?: unknown;
+      line_total_cents?: unknown;
+    };
+    const num = (v: unknown) => (typeof v === "number" ? v : 0);
+    const items = ((data.items as StoredItem[] | null) ?? []).map((i) => {
+      const quantity = num(i.quantity) || 1;
+      return {
+        name: typeof i.name === "string" ? i.name : "Item",
+        dose: typeof i.dose === "string" ? i.dose : "",
+        quantity,
+        lineCents: num(i.line_total_cents) || num(i.unit_price_cents) * quantity,
+      };
+    });
+
+    return {
+      ref: data.order_ref,
+      status: data.status as OrderStatus,
+      paymentMethod: data.payment_method ?? null,
+      email: data.email,
+      items,
+      shipping: data.shipping as CheckoutShipping,
+      subtotalCents: data.subtotal_cents,
+      shippingCents: data.shipping_cents,
+      discountCode: data.discount_code ?? null,
+      discountCents: data.discount_cents ?? 0,
+      totalCents: data.total_cents,
+    };
+  } catch {
+    return null;
+  }
+}
