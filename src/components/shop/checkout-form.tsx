@@ -52,6 +52,8 @@ type Props = {
    * asking the customer to retype it is pure friction.
    */
   defaultEmail: string;
+  /** Shipping from the customer's last order, if any. Still editable. */
+  defaultShipping?: CheckoutShipping | null;
 };
 
 /**
@@ -65,7 +67,12 @@ type Props = {
  * iframes here and tokenises before submit — or, with no tokenization key,
  * a clearly-labelled mock banner is shown and the form submits `MOCK`.
  */
-export function CheckoutForm({ methods, processor, defaultEmail }: Props) {
+export function CheckoutForm({
+  methods,
+  processor,
+  defaultEmail,
+  defaultShipping,
+}: Props) {
   const router = useRouter();
   const { items, subtotal, clear, hydrated } = useCart();
 
@@ -161,7 +168,9 @@ export function CheckoutForm({ methods, processor, defaultEmail }: Props) {
       setCheckingCode(false);
     }
   }
-  const [shipping, setShipping] = useState<ShippingForm>(EMPTY_SHIPPING);
+  const [shipping, setShipping] = useState<ShippingForm>(
+    () => defaultShipping ?? EMPTY_SHIPPING,
+  );
   const [submitting, setSubmitting] = useState(false);
   const [collectReady, setCollectReady] = useState(false);
   const [collectError, setCollectError] = useState<string | null>(null);

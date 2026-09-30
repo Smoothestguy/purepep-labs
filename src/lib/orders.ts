@@ -1,6 +1,7 @@
 import "server-only";
 
 import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient as createServerClient } from "@/lib/supabase/server";
 import type { PricedLine } from "@/lib/pricing";
 import type { CheckoutShipping } from "@/lib/checkout/types";
 import type { PaymentMethod } from "@/lib/payment-methods";
@@ -466,4 +467,44 @@ export async function updateOrderStatus(
     .eq("order_ref", orderRef);
 
   if (error) throw new Error(`Failed to update status: ${error.message}`);
+}
+
+/**
+ * The shipping details from this customer's most recent order, to seed
+ * checkout. Runs as the signed-in user, so the orders_select_own policy
+ * guarantees it can only ever read their own orders — never someone
+ * else's address. Returns null for a first order or on any failure;
+ * checkout then simply starts empty.
+ */
+export async function lastShippingFor(
+  userId: string,
+): Promise<CheckoutShipping | null> {
+  try {
+    const supabase = await createServerClient();
+    const { data, error } = await supabase
+      .from("orders")
+      .select("shipping")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (error || !data) return null;
+
+    // Stored as JSONB; take only the known string fields.
+    const s = data.shipping as Partial<Record<keyof CheckoutShipping, unknown>> | null;
+    if (!s) return null;
+    const str = (v: unknown) => (typeof v === "string" ? v : "");
+    return {
+      firstName: str(s.firstName),
+      lastName: str(s.lastName),
+      address1: str(s.address1),
+      address2: str(s.address2),
+      city: str(s.city),
+      state: str(s.state),
+      zip: str(s.zip),
+      phone: str(s.phone),
+    };
+  } catch {
+    return null;
+  }
 }

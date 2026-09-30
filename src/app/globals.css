@@ -413,3 +413,17 @@
   .pp-marquee { overflow-x: auto; }
   .pp-marquee-track { animation: none; }
 }
+
+/*
+ * iOS Safari zooms the page into any focused text field whose font is
+ * under 16px, and doesn't zoom back out. Forms here use small mono type
+ * set inline, so on touch screens every field is lifted to 16px. Pinch
+ * zoom stays enabled — this only stops the automatic jump.
+ */
+@media (pointer: coarse) {
+  input:not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { CheckoutForm } from "@/components/shop/checkout-form";
 import { getCurrentUser } from "@/lib/auth/user";
+import { lastShippingFor } from "@/lib/orders";
 import { cardProcessor, enabledMethods } from "@/lib/payments/processor";
 
 export const metadata: Metadata = {
@@ -33,6 +34,9 @@ export default async function CheckoutPage({
 }) {
   const [user, resolved] = await Promise.all([getCurrentUser(), searchParams]);
   const cancelled = first(resolved.cancelled) === "1";
+  // A returning customer's last shipping details, so they don't retype
+  // an address we already hold. Sign-up only collects email.
+  const savedShipping = user ? await lastShippingFor(user.id) : null;
 
   return (
     <section className="relative border-b border-hairline">
@@ -89,6 +93,7 @@ export default async function CheckoutPage({
           methods={enabledMethods()}
           processor={cardProcessor()}
           defaultEmail={user.email}
+          defaultShipping={savedShipping}
         />
       ) : (
         <SignInGate />
