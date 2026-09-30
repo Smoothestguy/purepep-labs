@@ -116,7 +116,7 @@ export default function PrivacyPage() {
                 eyebrow="08 · Contact"
                 title="Write to the laboratory."
                 paragraphs={[
-                  "Questions, requests, or complaints may be directed to: The Pure Pep, LLC — Privacy Office, [street address], Houston, Texas [ZIP], United States, or privacy@[placeholder-domain].",
+                  "Questions, requests, or complaints may be directed to: The Pure Pep, LLC, Houston, Texas, at support@thepurepep.com.",
                 ]}
               />
             </div>

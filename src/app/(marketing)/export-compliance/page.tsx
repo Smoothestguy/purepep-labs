@@ -116,7 +116,7 @@ export default function ExportCompliancePage() {
                 eyebrow="08 · Contact"
                 title="Compliance Officer."
                 paragraphs={[
-                  "Inquiries regarding export classification, licensing, or the screening process may be directed to: Compliance Officer, The Pure Pep, LLC, [street address], Houston, Texas [ZIP], United States, or compliance@[placeholder-domain].",
+                  "Inquiries regarding export classification, licensing, or the screening process may be directed to: The Pure Pep, LLC, Houston, Texas, at support@thepurepep.com.",
                 ]}
               />
             </div>

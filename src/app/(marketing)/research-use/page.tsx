@@ -85,7 +85,7 @@ export default function ResearchUsePage() {
                 eyebrow="04 · Enforcement"
                 title="How we find out, what we do."
                 paragraphs={[
-                  "We monitor publicly available signals — social media, marketplace listings, discussion forums — for evidence that lot-traceable compounds have been diverted to prohibited uses. Independently developed signatures embedded in certain lots allow us to trace samples back to the originating shipment.",
+                  "We monitor publicly available signals — social media, marketplace listings, discussion forums — for evidence that lot-traceable compounds have been diverted to prohibited uses.",
                   "Where a violation is established, we may: cancel open orders; revoke the researcher's account; withhold outstanding refunds where permissible; and, in cases involving human administration, notify relevant regulatory authorities.",
                 ]}
               />
@@ -102,7 +102,7 @@ export default function ResearchUsePage() {
                 eyebrow="06 · Reporting"
                 title="If you suspect misuse."
                 paragraphs={[
-                  "If you believe a The Pure Pep compound is being diverted, relabelled, or administered outside laboratory research, write to research-integrity@[placeholder-domain]. Reports may be submitted anonymously. Credible information is reviewed by the laboratory director within three business days.",
+                  "If you believe a The Pure Pep compound is being diverted, relabelled, or administered outside laboratory research, write to support@thepurepep.com. Reports may be submitted anonymously, and every credible report is reviewed.",
                 ]}
               />
             </div>
