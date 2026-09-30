@@ -39,7 +39,7 @@ export function FeaturedProducts() {
         >
           <div>
             <div className="section-eyebrow">
-              <span className="whitespace-nowrap text-brand">§ 02</span>
+              <span className="whitespace-nowrap text-brand">§ 03</span>
               <span
                 className="h-px shrink-0 bg-hairline"
                 style={{ width: "clamp(1.5rem, 3vw, 2.75rem)" }}

@@ -59,7 +59,7 @@ export function Science() {
         <div className="lg:col-span-5 xl:col-span-4">
           <div className="lg:sticky lg:top-[clamp(5rem,8vw,7rem)]">
             <div className="section-eyebrow">
-              <span className="whitespace-nowrap text-brand">§ 03</span>
+              <span className="whitespace-nowrap text-brand">§ 05</span>
               <span
                 className="h-px shrink-0 bg-hairline"
                 style={{ width: "clamp(1.5rem, 3vw, 2.75rem)" }}

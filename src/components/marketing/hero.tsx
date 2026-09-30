@@ -76,7 +76,9 @@ export function Hero() {
               className="whitespace-nowrap"
               style={{ color: "oklch(0.7 0.01 230)" }}
             >
-              Index Vol. XII · Spring ’26
+              {/* The full label runs into the vial's cap on a phone. */}
+              <span className="hidden sm:inline">Index Vol. XII · </span>
+              Spring ’26
             </span>
           </div>
 

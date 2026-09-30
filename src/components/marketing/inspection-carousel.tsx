@@ -86,7 +86,7 @@ export function InspectionCarousel() {
     >
       <div className="mx-auto w-full max-w-[var(--content-max)] pad-x">
         <div className="section-eyebrow justify-center text-center">
-          <span className="whitespace-nowrap text-brand">§ 01</span>
+          <span className="whitespace-nowrap text-brand">§ 02</span>
           <span
             className="h-px shrink-0 bg-hairline"
             style={{ width: "clamp(1.5rem, 3vw, 2.75rem)" }}
