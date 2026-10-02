@@ -9,9 +9,9 @@ import type { Compound } from "@/lib/compounds";
 
 const ACCENT: Record<Compound["category"], string> = {
   structural: "#FF8C42",
-  metabolic: "#22D3EE",
-  nootropic: "#C084FC",
-  senescence: "#38BDF8",
+  receptor: "#22D3EE",
+  shortchain: "#C084FC",
+  complex: "#38BDF8",
 };
 
 interface SceneProps {

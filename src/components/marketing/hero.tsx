@@ -51,10 +51,10 @@ export function Hero() {
 
       {/* Main content — copy stays in the left two-thirds, never crosses the vial */}
       <div
-        className="relative z-10 mx-auto flex w-full max-w-[var(--content-max)] flex-col justify-center pad-x lg:min-h-[min(78vh,820px)]"
+        className="relative z-10 mx-auto flex w-full max-w-[var(--content-max)] flex-col justify-center pad-x lg:min-h-[min(56vh,620px)]"
         style={{
-          paddingTop: "clamp(2rem, 4vw + 1rem, 5rem)",
-          paddingBottom: "clamp(2rem, 4vw + 1rem, 4rem)",
+          paddingTop: "clamp(1.5rem, 3vw + 0.5rem, 3.5rem)",
+          paddingBottom: "clamp(1.5rem, 3vw + 0.5rem, 3rem)",
         }}
       >
         <div className="relative flex w-full flex-col lg:max-w-[min(64%,57.5rem)]">
@@ -76,7 +76,9 @@ export function Hero() {
               className="whitespace-nowrap"
               style={{ color: "oklch(0.7 0.01 230)" }}
             >
-              Index Vol. XII · Spring ’26
+              {/* The full label runs into the vial's cap on a phone. */}
+              <span className="hidden sm:inline">Index Vol. XII · </span>
+              Spring ’26
             </span>
           </div>
 
@@ -115,9 +117,12 @@ export function Hero() {
           </h1>
 
           <p
-            className="body-lede animate-rise"
+            // Below lg the vial sits above the copy in a 16:10 frame, so on
+            // wider phones the lede ran into the bottom of the label. The
+            // gap grows with the viewport to keep it clear of the vial.
+            className="body-lede animate-rise [--lede-mt:max(1.5rem,calc(60vw_-_12.5rem))] lg:[--lede-mt:clamp(1.5rem,2.5vw,2.25rem)]"
             style={{
-              marginTop: "clamp(1.5rem, 2.5vw, 2.25rem)",
+              marginTop: "var(--lede-mt)",
               maxWidth: "36rem",
               color: "oklch(0.78 0.01 230)",
               animationDelay: "520ms",
@@ -137,7 +142,7 @@ export function Hero() {
             }}
           >
             <Link
-              href="#catalog"
+              href="/shop"
               className="group inline-flex items-center gap-3 whitespace-nowrap font-mono uppercase transition-all hover:shadow-[0_0_0_4px_oklch(0.82_0.15_210_/_0.22)]"
               style={{
                 background: "oklch(0.82 0.15 210)",
@@ -154,7 +159,7 @@ export function Hero() {
               </span>
             </Link>
             <Link
-              href="#coa"
+              href="/coa"
               className="group inline-flex items-center gap-3 whitespace-nowrap font-mono uppercase transition-colors hover:border-white"
               style={{
                 border: "1px solid oklch(1 0 0 / 0.22)",
@@ -169,7 +174,7 @@ export function Hero() {
                 className="size-1.5 rounded-full"
                 style={{ background: "oklch(0.82 0.15 210)" }}
               />
-              View documentation
+              View COAs
             </Link>
           </div>
 

@@ -13,11 +13,14 @@ const PRODUCT_SLUGS = [
   "mots-c",
 ] as const;
 
+// Storefront filter keys — kept in step with catalogFilters() in
+// lib/compounds. The old physiological categories are gone from here too,
+// so search engines stop being handed those URLs.
 const CATEGORIES = [
-  "structural",
-  "metabolic",
-  "nootropic",
-  "senescence",
+  "certified",
+  "blends",
+  "peptides",
+  "supplies",
 ] as const;
 
 export default function sitemap(): MetadataRoute.Sitemap {

@@ -10,7 +10,7 @@ import { AuthButton } from "@/components/shared/auth-button";
 const nav = [
   { href: "/shop", label: "Catalog" },
   { href: "/#science", label: "Science" },
-  { href: "/coa", label: "Documentation" },
+  { href: "/coa", label: "COAs" },
 ];
 
 export function SiteHeader() {
@@ -19,10 +19,10 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 border-b border-hairline bg-background/70 backdrop-blur-md">
       <div className="mx-auto flex h-[clamp(5rem,7vw+2rem,7rem)] w-full max-w-[var(--content-max)] items-center justify-between gap-4 pad-x">
-        <Link href="/" className="group flex items-center" aria-label="PurePep Labs — home">
+        <Link href="/" className="group flex items-center" aria-label="The Pure Pep — home">
           <Image
             src="/images/PurePep_Label.png"
-            alt="PurePep Labs"
+            alt="The Pure Pep"
             width={1320}
             height={1348}
             priority

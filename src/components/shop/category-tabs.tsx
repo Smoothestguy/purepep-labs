@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { categories } from "@/lib/compounds";
+import { catalogFilters } from "@/lib/compounds";
 
 type Props = {
   active?: string;
@@ -8,10 +8,10 @@ type Props = {
 export function CategoryTabs({ active }: Props) {
   const tabs: { key: string | undefined; label: string; href: string }[] = [
     { key: undefined, label: "All", href: "/shop" },
-    ...categories.map((c) => ({
-      key: c.key,
-      label: c.label,
-      href: `/shop?category=${c.key}`,
+    ...catalogFilters().map((f) => ({
+      key: f.key,
+      label: f.label,
+      href: `/shop?category=${f.key}`,
     })),
   ];
 

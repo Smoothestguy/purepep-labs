@@ -4,23 +4,35 @@ import { useState } from "react";
 import Link from "next/link";
 import type { Compound } from "@/lib/compounds";
 import {
-  slugify,
+  compoundSlug,
   compoundHasPhoto,
   compoundPhotoSrc,
+  isCertifiedVariant,
 } from "@/lib/compounds";
 import { CompoundLabel } from "./compound-label";
 
 type Props = {
   compound: Compound;
+  /**
+   * Dose to open on. Lets a listing lead with a specific lot — the
+   * homepage uses it to show the dose that actually has a certificate,
+   * rather than the default dose that may not.
+   */
+  initialDose?: string;
 };
 
-export function ProductCard({ compound: c }: Props) {
-  const [selectedIdx, setSelectedIdx] = useState(0);
+export function ProductCard({ compound: c, initialDose }: Props) {
+  const [selectedIdx, setSelectedIdx] = useState(() => {
+    const i = initialDose
+      ? c.variants.findIndex((v) => v.dose === initialDose)
+      : -1;
+    return i >= 0 ? i : 0;
+  });
   const variant = c.variants[selectedIdx];
   const hasMulti = c.variants.length > 1;
   const hasPhoto = compoundHasPhoto(c);
 
-  const slug = slugify(c.name);
+  const slug = compoundSlug(c);
   const href = hasMulti
     ? `/product/${slug}?dose=${encodeURIComponent(variant.dose)}`
     : `/product/${slug}`;
@@ -29,20 +41,35 @@ export function ProductCard({ compound: c }: Props) {
     <article
       className="group relative flex flex-col border border-hairline bg-background transition-colors hover:bg-surface/60"
       style={{
-        padding: "clamp(1.1rem, 1.8vw, 1.5rem)",
+        padding: "clamp(0.7rem, 1.8vw, 1.5rem)",
         gap: "clamp(0.9rem, 1.4vw, 1.25rem)",
       }}
     >
       <CardCornerTicks />
 
       {/* Vial image — photoreal render or base + SVG label fallback */}
-      <div className="relative -mx-[clamp(1.1rem,1.8vw,1.5rem)] -mt-[clamp(1.1rem,1.8vw,1.5rem)] aspect-square overflow-hidden border-b border-hairline bg-[oklch(0.05_0.005_250)]">
+      <div className="relative -mx-[clamp(0.7rem,1.8vw,1.5rem)] -mt-[clamp(0.7rem,1.8vw,1.5rem)] aspect-square overflow-hidden border-b border-hairline bg-[oklch(0.05_0.005_250)]">
         <img
           src={compoundPhotoSrc(c)}
           alt={`${c.name} vial`}
           className="absolute inset-0 h-full w-full object-contain transition-transform duration-700 group-hover:scale-[1.03]"
           loading="lazy"
         />
+        {/* Certified lots say so on the photo, where it is seen first.
+            Reflects the selected dose — switching to an uncertified one
+            removes it rather than implying the whole compound is tested. */}
+        {isCertifiedVariant(variant) ? (
+          <span
+            className="absolute left-2 top-2 z-10 inline-flex items-center gap-1 border border-brand/60 bg-background/80 font-mono uppercase tracking-[0.18em] text-brand backdrop-blur"
+            style={{
+              fontSize: "clamp(8.5px, 0.25vw + 7.5px, 10px)",
+              paddingInline: "0.4rem",
+              paddingBlock: "0.2rem",
+            }}
+          >
+            <span aria-hidden>✓</span> CoA
+          </span>
+        ) : null}
         {!hasPhoto && (
           <div
             className="absolute"
@@ -76,14 +103,13 @@ export function ProductCard({ compound: c }: Props) {
         style={{ fontSize: "clamp(9.5px, 0.25vw + 8.5px, 10.5px)" }}
       >
         <span className="text-foreground">{c.accession}</span>
-        <span className="text-muted-foreground">{c.family}</span>
+        <span className="hidden text-muted-foreground sm:inline">{c.family}</span>
       </div>
 
       {/* Compound name — Link with stretched ::after covers the whole card */}
       <div>
         <h3
-          className="font-display leading-none tracking-tight text-foreground"
-          style={{ fontSize: "clamp(1.75rem, 2.6vw, 2.5rem)" }}
+          className="font-display text-[1.2rem] leading-none tracking-tight text-foreground sm:text-[length:clamp(1.75rem,2.6vw,2.5rem)]"
         >
           <Link
             href={href}
@@ -93,7 +119,7 @@ export function ProductCard({ compound: c }: Props) {
           </Link>
         </h3>
         <div
-          className="mt-1.5 font-mono italic tracking-[0.02em] text-muted-foreground"
+          className="mt-1.5 hidden font-mono italic tracking-[0.02em] text-muted-foreground sm:block"
           style={{ fontSize: "clamp(10px, 0.25vw + 9px, 11px)" }}
         >
           {c.codename}
@@ -102,7 +128,7 @@ export function ProductCard({ compound: c }: Props) {
 
       {/* Sequence — truncated */}
       <div
-        className="min-w-0 font-mono tracking-[0.08em] text-foreground/80"
+        className="hidden min-w-0 font-mono tracking-[0.08em] text-foreground/80 sm:block"
         style={{ fontSize: "clamp(10px, 0.3vw + 9px, 11px)" }}
       >
         <div
@@ -116,7 +142,7 @@ export function ProductCard({ compound: c }: Props) {
 
       {/* MW + purity row */}
       <div
-        className="grid grid-cols-2 border-t border-hairline font-mono tracking-[0.08em]"
+        className="hidden grid-cols-2 border-t border-hairline font-mono tracking-[0.08em] sm:grid"
         style={{
           paddingTop: "clamp(0.75rem, 1.2vw, 1rem)",
           fontSize: "clamp(10px, 0.3vw + 9px, 11px)",
@@ -139,12 +165,30 @@ export function ProductCard({ compound: c }: Props) {
           >
             Purity
           </div>
-          <div className="mt-1 text-brand">{c.purity}%</div>
+          <div className="mt-1 text-brand">{variant.purity ?? c.purity}%</div>
         </div>
       </div>
 
-      {/* Variant chips — only if multi-variant. Sits above the stretched
-          link via z-10 so chip clicks don't navigate. */}
+      {/* Size. Multi-variant products get selectable chips; single-variant
+          ones get a static badge, so every card states its fill. */}
+      {!hasMulti && (
+        <div
+          className="flex flex-wrap gap-1.5"
+          aria-label="Vial size"
+        >
+          <span
+            className="border border-hairline font-mono tracking-[0.15em] uppercase text-foreground"
+            style={{
+              fontSize: "clamp(9.5px, 0.25vw + 8.5px, 10.5px)",
+              paddingInline: "clamp(0.5rem, 0.9vw, 0.7rem)",
+              paddingBlock: "clamp(0.3rem, 0.5vw, 0.4rem)",
+            }}
+          >
+            {variant.dose}
+          </span>
+        </div>
+      )}
+
       {hasMulti && (
         <div
           className="relative z-10 flex flex-wrap gap-1.5"
@@ -180,7 +224,7 @@ export function ProductCard({ compound: c }: Props) {
       )}
 
       {/* Stock + price row — reflects selected variant */}
-      <div className="mt-auto flex items-end justify-between gap-3">
+      <div className="mt-auto flex flex-col-reverse items-start gap-1.5 sm:flex-row sm:items-end sm:justify-between sm:gap-3">
         <div
           className="flex items-center gap-2 font-mono tracking-[0.22em] uppercase"
           style={{ fontSize: "clamp(9px, 0.25vw + 8px, 10.5px)" }}
@@ -194,8 +238,7 @@ export function ProductCard({ compound: c }: Props) {
           <span className="text-muted-foreground">in stock</span>
         </div>
         <div
-          className="flex items-baseline gap-1 font-display leading-none tracking-tight text-foreground"
-          style={{ fontSize: "clamp(1.6rem, 2.4vw, 2.1rem)" }}
+          className="flex items-baseline gap-1 font-display text-[1.35rem] leading-none tracking-tight text-foreground sm:text-[length:clamp(1.6rem,2.4vw,2.1rem)]"
         >
           <span
             className="font-mono tracking-[0.25em] uppercase text-muted-foreground"

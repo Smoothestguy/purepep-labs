@@ -1,18 +1,29 @@
 "use client";
 
-import type { Compound } from "@/lib/compounds";
+import Image from "next/image";
+import type { Compound, Variant } from "@/lib/compounds";
+import { COA_IMAGE_SIZE, coaImageSrc, coaPdfSrc } from "@/lib/compounds";
 import { BuyButton } from "./buy-button";
 import { CompoundVial } from "./compound-vial";
 import { VariantPicker } from "./variant-picker";
 import { useSelectedVariant } from "./use-selected-variant";
 
-type Props = {
+/**
+ * Reads the URL-selected variant. This is the only piece that touches
+ * `useSearchParams`, so the page wraps it in a `<Suspense>` boundary and
+ * renders `<ProductSidebarView>` (default variant) as the prerendered fallback.
+ */
+export function ProductDetailSidebar({ compound }: { compound: Compound }) {
+  const variant = useSelectedVariant(compound);
+  return <ProductSidebarView compound={compound} variant={variant} />;
+}
+
+type ViewProps = {
   compound: Compound;
+  variant: Variant;
 };
 
-export function ProductDetailSidebar({ compound }: Props) {
-  const variant = useSelectedVariant(compound);
-
+export function ProductSidebarView({ compound, variant }: ViewProps) {
   return (
     <div
       className="lg:sticky"
@@ -25,7 +36,7 @@ export function ProductDetailSidebar({ compound }: Props) {
     >
       <CompoundVial compound={compound} variant={variant} />
 
-      <VariantPicker compound={compound} />
+      <VariantPicker compound={compound} selectedDose={variant.dose} />
 
       {/* Specifications card */}
       <div
@@ -109,6 +120,119 @@ export function ProductDetailSidebar({ compound }: Props) {
           Ships in 1–2 business days
         </p>
       </div>
+
+      <CertificatePanel variant={variant} />
+    </div>
+  );
+}
+
+/**
+ * The certificate for the selected lot, shown as an image.
+ *
+ * Buyers in this category judge a supplier by the paperwork, and a link
+ * to a PDF is a click most never make. Showing the page itself — purity,
+ * lot and the lab's own verification code visible without leaving —
+ * puts the proof where the decision happens. The whole certificate stays
+ * one tap away as the original PDF.
+ *
+ * Follows the selected dose. A lot without a certificate says so plainly
+ * instead of borrowing another dose's paperwork.
+ */
+function CertificatePanel({ variant }: { variant: Variant }) {
+  const image = coaImageSrc(variant);
+  const pdf = coaPdfSrc(variant);
+
+  const label = (
+    <div
+      className="font-mono tracking-[0.25em] uppercase text-muted-foreground"
+      style={{ fontSize: "clamp(9.5px, 0.25vw + 8.5px, 10.5px)" }}
+    >
+      Certificate of analysis
+    </div>
+  );
+
+  if (!image || !pdf) {
+    return (
+      <div
+        className="border border-hairline bg-surface/40"
+        style={{ padding: "clamp(1.1rem, 1.6vw, 1.5rem)" }}
+      >
+        {label}
+        <p
+          className="font-sans leading-relaxed text-muted-foreground"
+          style={{
+            marginTop: "clamp(0.6rem, 1vw, 0.8rem)",
+            fontSize: "clamp(0.85rem, 0.25vw + 0.8rem, 0.95rem)",
+          }}
+        >
+          The certificate for lot {variant.lot === "TBD" ? "—" : variant.lot}{" "}
+          ({variant.dose}) is with the laboratory. It is published here as
+          soon as it is issued — or email support@thepurepep.com and we will
+          send it when it lands.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="border border-hairline bg-surface/40">
+      <div
+        className="flex items-baseline justify-between gap-3"
+        style={{ padding: "clamp(1.1rem, 1.6vw, 1.5rem)" }}
+      >
+        {label}
+        <span
+          className="font-mono tracking-[0.2em] uppercase text-brand"
+          style={{ fontSize: "clamp(9.5px, 0.25vw + 8.5px, 10.5px)" }}
+        >
+          ✓ {variant.purity ? `${variant.purity.toFixed(2)}%` : "Pass"} · {variant.lot}
+        </span>
+      </div>
+
+      <a
+        href={pdf}
+        target="_blank"
+        rel="noopener"
+        className="group relative block overflow-hidden border-t border-hairline"
+        aria-label={`Open the full certificate for lot ${variant.lot} (PDF)`}
+      >
+        {/* The top of the page carries everything a buyer checks — lab,
+            lot, purity, verification code — so it is shown uncropped and
+            the chromatogram below fades out into the link. */}
+        <div className="relative max-h-[26rem] overflow-hidden bg-white">
+          <Image
+            src={image}
+            alt={`Certificate of analysis for lot ${variant.lot}, ${variant.dose}`}
+            width={COA_IMAGE_SIZE.width}
+            height={COA_IMAGE_SIZE.height}
+            sizes="(min-width: 1024px) 34vw, 92vw"
+            className="block h-auto w-full transition-transform duration-500 group-hover:scale-[1.015]"
+          />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-x-0 bottom-0 h-24"
+            style={{
+              background:
+                "linear-gradient(to bottom, transparent, var(--background))",
+            }}
+          />
+        </div>
+        <div
+          className="flex items-center justify-between gap-3 font-mono tracking-[0.3em] uppercase text-foreground transition-colors group-hover:text-brand"
+          style={{
+            padding: "clamp(0.85rem, 1.2vw, 1.1rem) clamp(1.1rem, 1.6vw, 1.5rem)",
+            fontSize: "clamp(9.5px, 0.3vw + 8.5px, 10.5px)",
+          }}
+        >
+          <span>Open full certificate · PDF</span>
+          <span
+            aria-hidden
+            className="transition-transform group-hover:translate-x-1"
+          >
+            →
+          </span>
+        </div>
+      </a>
     </div>
   );
 }

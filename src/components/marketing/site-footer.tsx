@@ -8,10 +8,10 @@ const columns: { title: string; links: FooterLink[] }[] = [
   {
     title: "Catalog",
     links: [
-      { href: "/shop?category=structural", label: "Structural" },
-      { href: "/shop?category=metabolic", label: "Metabolic" },
-      { href: "/shop?category=nootropic", label: "Nootropic" },
-      { href: "/shop?category=senescence", label: "Senescence" },
+      { href: "/shop?category=certified", label: "Certified · CoA" },
+      { href: "/shop?category=blends", label: "Blends" },
+      { href: "/shop?category=peptides", label: "Single compounds" },
+      { href: "/shop?category=supplies", label: "Supplies" },
       { href: "/shop", label: "All compounds" },
     ],
   },
@@ -130,14 +130,32 @@ export function SiteFooter() {
             fontSize: "clamp(9.5px, 0.25vw + 8.5px, 10.5px)",
           }}
         >
-          <div>© {year} PurePep Labs, LLC · Houston, TX</div>
+          <div>© {year} The Pure Pep, LLC · Houston, TX</div>
           <div>For research use only · Not for human consumption</div>
         </div>
+
+        {/* FDA disclaimer — standard for research-chemical suppliers, and
+            every comparable supplier carries one. */}
+        <p
+          className="mx-auto max-w-3xl text-center font-sans leading-relaxed text-muted-foreground/70"
+          style={{
+            marginTop: "clamp(1.25rem, 2vw, 1.75rem)",
+            fontSize: "clamp(10px, 0.25vw + 9px, 11.5px)",
+          }}
+        >
+          These statements have not been evaluated by the Food and Drug
+          Administration. Products sold by The Pure Pep are intended for
+          laboratory research use only and are not drugs, foods, cosmetics, or
+          supplements. They are not intended to diagnose, treat, cure, or
+          prevent any disease, and are not for human or veterinary
+          consumption. Sale is restricted to qualified researchers and
+          institutions.
+        </p>
 
         <div className="mt-6 flex justify-center">
           <Image
             src="/images/PurePep_Label.png"
-            alt="PurePep Labs"
+            alt="The Pure Pep"
             width={1320}
             height={1348}
             className="h-auto w-[clamp(8rem,18vw,14rem)]"
