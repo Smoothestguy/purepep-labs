@@ -6,6 +6,7 @@ import "server-only";
  * Codes live in `DISCOUNT_CODES` as `CODE:PERCENT` pairs, comma separated:
  *
  *   DISCOUNT_CODES=HTOWN:15,SOMECOMP:100
+ *   PROMO_CODES=ant15:15,angel15:15
  *
  * Server-only, for two reasons: a code committed to source is public the
  * moment the repo is, and env lets one be revoked or rotated without a
@@ -28,7 +29,12 @@ export type Discount = {
 };
 
 function parseCodes(): Discount[] {
-  const raw = process.env.DISCOUNT_CODES ?? "";
+  // PROMO_CODES holds the everyday partner codes (same CODE:PERCENT
+  // format) so they can be added or changed without touching
+  // DISCOUNT_CODES, which also carries the comp code.
+  const raw = [process.env.DISCOUNT_CODES, process.env.PROMO_CODES]
+    .filter(Boolean)
+    .join(",");
 
   return raw
     .split(",")
