@@ -16,8 +16,10 @@ import { createClient } from "@/lib/supabase/server";
  */
 function allowlist(): string[] {
   return (process.env.ADMIN_EMAILS ?? "")
-    .split(",")
-    .map((e) => e.trim().toLowerCase())
+    .split(/[,\s]+/)
+    // Values pasted into a dashboard or piped through a CLI can pick up
+    // wrapping quotes or stray whitespace; neither belongs in an email.
+    .map((e) => e.replace(/^["']+|["']+$/g, "").trim().toLowerCase())
     .filter(Boolean);
 }
 
@@ -39,7 +41,17 @@ export async function getAdminUser(): Promise<AdminUser | null> {
 
   const email = user?.email?.toLowerCase();
   if (!user || !email) return null;
-  if (!emails.includes(email)) return null;
+  if (!emails.includes(email)) {
+    // Signed in but not on the list. Log the shape of the allowlist — never
+    // its contents — so a misconfigured ADMIN_EMAILS can be diagnosed from
+    // the runtime logs without exposing who the admins are.
+    console.warn(
+      `[admin] refused a signed-in user; allowlist has ${emails.length} entr${
+        emails.length === 1 ? "y" : "ies"
+      } (lengths: ${emails.map((e) => e.length).join(", ") || "none"}), signed-in email length ${email.length}`,
+    );
+    return null;
+  }
 
   return { id: user.id, email };
 }

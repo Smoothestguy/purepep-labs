@@ -38,7 +38,9 @@ function parseCodes(): Discount[] {
 
   return raw
     .split(",")
-    .map((entry) => entry.trim())
+    // Strip wrapping quotes and whitespace that a dashboard paste or CLI
+    // pipe can leave behind.
+    .map((entry) => entry.replace(/^[\s"']+|[\s"']+$/g, ""))
     .filter(Boolean)
     .flatMap((entry) => {
       // rsplit on ':' so a code containing a colon still parses — the
