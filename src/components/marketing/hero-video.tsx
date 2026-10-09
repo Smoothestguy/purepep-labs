@@ -50,9 +50,9 @@ export function HeroVideo() {
     <motion.div
       ref={ref}
       className="
-        pointer-events-none relative z-0 w-full
+        pointer-events-none absolute left-0 sm:left-[10%] top-0 z-0 w-full
         aspect-[16/10] lg:aspect-auto
-        lg:absolute lg:inset-y-0 lg:right-0 lg:left-auto
+        lg:inset-y-0 lg:right-0 lg:left-auto
         lg:w-full lg:max-w-[1700px]
         lg:flex lg:items-start lg:justify-center
       "

@@ -4,8 +4,8 @@ import { Suspense } from "react";
 import { ForgotPasswordForm } from "@/components/shared/forgot-password-form";
 
 export const metadata: Metadata = {
-  title: "Reset your password — PurePep Labs",
-  description: "Request a password reset link for your PurePep Labs account.",
+  title: "Reset your password — The Pure Pep",
+  description: "Request a password reset link for your The Pure Pep account.",
 };
 
 export default function ForgotPasswordPage() {

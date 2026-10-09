@@ -10,6 +10,15 @@ type Props = {
   variant: Variant;
 };
 
+/**
+ * Add to cart. Open to everyone.
+ *
+ * Browsing, pricing and building a cart need no account; the sign-in
+ * requirement sits at checkout, where the order is actually placed and
+ * has to be attributable to a verified researcher. Asking for an account
+ * before someone can even see a total is friction that loses the sale to
+ * whoever asks for less.
+ */
 export function BuyButton({ compound, variant }: Props) {
   const router = useRouter();
   const addItem = useCartStore((s) => s.addItem);

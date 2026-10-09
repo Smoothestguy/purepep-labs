@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useTransition } from "react";
-import type { User } from "@supabase/supabase-js";
+import { useTransition } from "react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
+import { useAuth } from "@/components/shared/auth-provider";
 
 type Props = {
   variant?: "desktop" | "mobile";
@@ -14,39 +14,9 @@ type Props = {
 
 export function AuthButton({ variant = "desktop", onNavigate }: Props) {
   const router = useRouter();
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  // Session comes from the shared provider — see components/shared/auth-provider.
+  const { user, loading } = useAuth();
   const [isPending, startTransition] = useTransition();
-
-  useEffect(() => {
-    let active = true;
-    let unsubscribe: (() => void) | undefined;
-
-    try {
-      const supabase = createClient();
-
-      supabase.auth.getUser().then(({ data }) => {
-        if (!active) return;
-        setUser(data.user ?? null);
-        setLoading(false);
-      });
-
-      const { data: sub } = supabase.auth.onAuthStateChange(
-        (_event, session) => {
-          setUser(session?.user ?? null);
-        },
-      );
-      unsubscribe = () => sub.subscription.unsubscribe();
-    } catch {
-      // Supabase env not configured yet — render the signed-out state.
-      setLoading(false);
-    }
-
-    return () => {
-      active = false;
-      unsubscribe?.();
-    };
-  }, []);
 
   function handleSignOut() {
     startTransition(async () => {

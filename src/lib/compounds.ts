@@ -4,6 +4,17 @@ export type Accent = {
   to: string;
 };
 
+export type Assay = {
+  /** Certificate number, e.g. "COA-2026-23ZFV8". */
+  coaNumber: string;
+  /** Access code printed beside the QR panel, for the lab's portal. */
+  accessCode: string;
+  /** Net peptide content the lab measured, in mg. Not reported for every lot. */
+  netContentMg?: number;
+  /** Endotoxin (USP <85>) as reported, e.g. "≤ 0.05 EU/mL". Only where run. */
+  endotoxin?: string;
+};
+
 export type Variant = {
   /** Display label for the dose, e.g. "10 mg", "5 mg + 5 mg", "10 mL". */
   dose: string;
@@ -11,16 +22,48 @@ export type Variant = {
   inStock: number;
   lot: string;
   coaDate: string;
+  /**
+   * Purity for THIS lot, from its certificate. Purity is measured per
+   * batch, so it varies between lots of the same compound; falls back to
+   * the compound-level figure where a lot has no certificate yet.
+   */
+  purity?: number;
+  /** Laboratory that signed this lot's certificate. */
+  lab?: string;
+  /**
+   * Further results and the verification pair printed on this lot's
+   * certificate. Transcribed from the PDF — nothing here is derived.
+   */
+  assay?: Assay;
+  /**
+   * Filename of the signed CoA for this lot, served from /coa/.
+   * Only set where a real PDF exists — the archive shows a download link
+   * for those lots and nothing for the rest, so it can never offer a
+   * certificate that isn't there.
+   */
+  coaPdf?: string;
 };
 
 export type Compound = {
   accession: string;
   name: string;
+  /**
+   * URL and photo key. Defaults to the slugified name; pin it explicitly
+   * when a display name changes so existing links, product images and
+   * saved carts keep resolving.
+   */
+  slug?: string;
+  /**
+   * Marked by the business from its own sales. Deliberately a manual flag:
+   * there is no order history to rank from yet, and a best-seller label
+   * nobody chose would be a claim with nothing behind it.
+   */
+  bestSeller?: boolean;
   codename: string;
   sequence: string;
   molecularWeight: number;
   purity: number;
-  category: "structural" | "metabolic" | "nootropic" | "senescence";
+  category: "structural" | "receptor" | "shortchain" | "complex";
   family: string;
   blurb: string;
   /** At least one variant; first entry is the default the card surfaces. */
@@ -37,7 +80,7 @@ export const compounds: Compound[] = [
   {
     accession: "PP-001",
     name: "BPC-157",
-    codename: "Body Protective Compound",
+    codename: "Gastric-Derived Pentadecapeptide",
     sequence: "GEPPPGKPADDAGLV",
     molecularWeight: 1419.53,
     purity: 99.42,
@@ -46,7 +89,7 @@ export const compounds: Compound[] = [
     blurb:
       "Gastric pentadecapeptide. Synthesised and freeze-dried under inert argon.",
     variants: [
-      { dose: "10 mg", price: 39.99, inStock: 214, lot: "A-4418", coaDate: "2026-03-14" },
+      { dose: "10 mg", price: 39.99, inStock: 214, lot: "BC10-001", coaDate: "2026-08-06", purity: 99.77, lab: "ILS Laboratories", coaPdf: "bc10-001.pdf", assay: { coaNumber: "COA-2026-23ZFV8", accessCode: "UEVS4MT5", netContentMg: 10.29 } },
     ],
     accent: { from: "oklch(0.65 0.22 258)", to: "oklch(0.82 0.15 210)" },
   },
@@ -73,23 +116,23 @@ export const compounds: Compound[] = [
     sequence: "GHK · Cu²⁺",
     molecularWeight: 402.92,
     purity: 99.68,
-    category: "senescence",
+    category: "complex",
     family: "Copper tripeptide",
     blurb: "Endogenous tripeptide–copper complex. Royal blue lyophilisate.",
     variants: [
       { dose: "50 mg", price: 34.99, inStock: 402, lot: "B-1904", coaDate: "2026-03-09" },
-      { dose: "100 mg", price: 44.99, inStock: 220, lot: "B-1904", coaDate: "2026-03-09" },
+      { dose: "100 mg", price: 44.99, inStock: 220, lot: "GHK100-001", coaDate: "2026-08-06", purity: 99.33, lab: "ILS Laboratories", coaPdf: "ghk100-001.pdf", assay: { coaNumber: "COA-2026-NLPG7Q", accessCode: "ED6SYE5S", netContentMg: 102.35 } },
     ],
     accent: { from: "oklch(0.55 0.18 60)", to: "oklch(0.78 0.16 75)" },
   },
   {
     accession: "PP-004",
     name: "Semax",
-    codename: "Heptapeptide Nootropic",
+    codename: "ACTH-Fragment Heptapeptide",
     sequence: "MEHFPGP",
     molecularWeight: 813.93,
     purity: 99.05,
-    category: "nootropic",
+    category: "shortchain",
     family: "ACTH analogue",
     blurb:
       "Synthetic analogue of ACTH(4-10). Sequence conserved from the endogenous ACTH fragment.",
@@ -101,11 +144,11 @@ export const compounds: Compound[] = [
   {
     accession: "PP-005",
     name: "Selank",
-    codename: "Anxiolytic Heptapeptide",
+    codename: "Tuftsin-Derived Heptapeptide",
     sequence: "TKPRPGP",
     molecularWeight: 751.87,
     purity: 99.24,
-    category: "nootropic",
+    category: "shortchain",
     family: "Tuftsin analogue",
     blurb: "Tuftsin analogue. Stored at −20 °C; thaw once only.",
     variants: [
@@ -116,33 +159,18 @@ export const compounds: Compound[] = [
   {
     accession: "PP-006",
     name: "Tesamorelin",
-    codename: "Growth-Hormone Releasing Factor",
-    sequence: "44 aa (hGRF analogue)",
+    codename: "44-Residue Peptide Analogue",
+    sequence: "44 aa",
     molecularWeight: 5135.85,
     purity: 99.03,
-    category: "metabolic",
-    family: "GHRH analogue",
-    blurb: "Stabilised GHRH(1-44) analogue. Amber glass, N₂ headspace.",
+    category: "receptor",
+    family: "Peptide analogue",
+    blurb: "Stabilised 44-residue peptide analogue. Amber glass, N₂ headspace.",
     variants: [
       { dose: "10 mg", price: 49.99, inStock: 42, lot: "D-2207", coaDate: "2026-03-28" },
-      { dose: "20 mg", price: 84.99, inStock: 36, lot: "D-2207", coaDate: "2026-03-28" },
+      { dose: "20 mg", price: 84.99, inStock: 36, lot: "TSA20-001", coaDate: "2026-08-12", purity: 99.10, lab: "ILS Laboratories", coaPdf: "tsa20-001.pdf", assay: { coaNumber: "COA-2026-FKZT0N", accessCode: "WRVNJSMW", netContentMg: 20.43, endotoxin: "0.107 EU/mL" } },
     ],
     accent: { from: "oklch(0.6 0.18 160)", to: "oklch(0.78 0.14 180)" },
-  },
-  {
-    accession: "PP-007",
-    name: "Epitalon",
-    codename: "Pineal Tetrapeptide",
-    sequence: "AEDG",
-    molecularWeight: 390.35,
-    purity: 99.74,
-    category: "senescence",
-    family: "Tetrapeptide",
-    blurb: "Telomerase-associated tetrapeptide. Isolated from bovine pineal.",
-    variants: [
-      { dose: "10 mg", price: 58, inStock: 188, lot: "B-1911", coaDate: "2026-03-11" },
-    ],
-    accent: { from: "oklch(0.45 0.2 290)", to: "oklch(0.7 0.18 320)" },
   },
   {
     accession: "PP-008",
@@ -151,7 +179,7 @@ export const compounds: Compound[] = [
     sequence: "MRWQEMGYIFYPRKLR",
     molecularWeight: 2174.58,
     purity: 99.19,
-    category: "metabolic",
+    category: "receptor",
     family: "Mitochondrial peptide",
     blurb:
       "16-residue peptide encoded within the mitochondrial 12S rRNA region.",
@@ -164,15 +192,18 @@ export const compounds: Compound[] = [
   // PLACEHOLDER_REVIEW
   {
     accession: "PP-009",
-    name: "BAC Water",
-    codename: "Bacteriostatic Water",
+    name: "Reconstitution Solution",
+    // Renamed from "BAC Water"; slug pinned so the existing URL, the
+    // product photo key and any saved carts keep resolving.
+    slug: "bac-water",
+    codename: "0.9% Benzyl Alcohol Diluent",
     sequence: "TBD",
     molecularWeight: 0,
     purity: 99,
     category: "structural",
     family: "Diluent",
     blurb:
-      "Sterile bacteriostatic water for reconstitution. 0.9% benzyl alcohol.",
+      "Sterile solution for reconstituting lyophilised material. 0.9% benzyl alcohol.",
     variants: [
       { dose: "10 mL", price: 5.99, inStock: 500, lot: "TBD", coaDate: "TBD" },
     ],
@@ -187,7 +218,7 @@ export const compounds: Compound[] = [
     molecularWeight: 0,
     purity: 99,
     category: "structural",
-    family: "Recovery blend",
+    family: "Peptide blend",
     blurb:
       "Co-lyophilised blend of BPC-157 and TB-500 in a single vial.",
     variants: [
@@ -199,15 +230,15 @@ export const compounds: Compound[] = [
   {
     accession: "PP-011",
     name: "CJC-1295 Ipamorelin",
-    codename: "GHRH / GHRP Blend",
+    codename: "Dual Peptide Blend",
     sequence: "TBD",
     molecularWeight: 0,
     purity: 99,
-    category: "metabolic",
-    family: "GHRH/GHRP blend",
+    category: "receptor",
+    family: "Peptide blend",
     blurb: "CJC-1295 (no-DAC) paired with Ipamorelin. Co-lyophilised.",
     variants: [
-      { dose: "5 mg + 5 mg", price: 49.99, inStock: 140, lot: "TBD", coaDate: "TBD" },
+      { dose: "5 mg + 5 mg", price: 49.99, inStock: 140, lot: "CJIP10-001", coaDate: "2026-08-06", purity: 99.93, lab: "ILS Laboratories", coaPdf: "cjip10-001.pdf", assay: { coaNumber: "COA-2026-PV4AAC", accessCode: "8MMFDUVZ" } },
     ],
     accent: { from: "oklch(0.6 0.18 145)", to: "oklch(0.8 0.14 170)" },
   },
@@ -219,13 +250,13 @@ export const compounds: Compound[] = [
     sequence: "TBD",
     molecularWeight: 0,
     purity: 99,
-    category: "metabolic",
+    category: "receptor",
     family: "Tri-agonist",
     blurb: "GLP-1 / GIP / glucagon triple receptor agonist. Lyophilised.",
     variants: [
-      { dose: "10 mg", price: 64.99, inStock: 80, lot: "TBD", coaDate: "TBD" },
-      { dose: "20 mg", price: 79.99, inStock: 70, lot: "TBD", coaDate: "TBD" },
-      { dose: "30 mg", price: 94.99, inStock: 60, lot: "TBD", coaDate: "TBD" },
+      { dose: "10 mg", price: 64.99, inStock: 80, lot: "RTA10-001", coaDate: "2026-08-06", purity: 99.90, lab: "ILS Laboratories", coaPdf: "rta10-001.pdf", assay: { coaNumber: "COA-2026-09HZFV", accessCode: "HC82TJDN", netContentMg: 10.71, endotoxin: "≤ 0.05 EU/mL" } },
+      { dose: "20 mg", price: 79.99, inStock: 70, lot: "RTA20-001", coaDate: "2026-08-06", purity: 99.88, lab: "ILS Laboratories", coaPdf: "rta20-001.pdf", assay: { coaNumber: "COA-2026-PHJRQZ", accessCode: "XYM9UUSE", netContentMg: 21.25, endotoxin: "≤ 0.05 EU/mL" } },
+      { dose: "30 mg", price: 94.99, inStock: 60, lot: "RTA30-001", coaDate: "2026-08-06", purity: 99.89, lab: "ILS Laboratories", coaPdf: "rta30-001.pdf", assay: { coaNumber: "COA-2026-XYKFUA", accessCode: "CRYVRVN5", netContentMg: 31.55, endotoxin: "≤ 0.05 EU/mL" } },
       { dose: "60 mg", price: 134.99, inStock: 40, lot: "TBD", coaDate: "TBD" },
     ],
     accent: { from: "oklch(0.58 0.2 245)", to: "oklch(0.78 0.15 220)" },
@@ -238,11 +269,13 @@ export const compounds: Compound[] = [
     sequence: "TBD",
     molecularWeight: 0,
     purity: 99,
-    category: "metabolic",
+    category: "receptor",
     family: "Dual agonist",
     blurb: "GLP-1 / GIP dual receptor agonist. Lyophilised.",
     variants: [
-      { dose: "20 mg", price: 69.99, inStock: 90, lot: "TBD", coaDate: "TBD" },
+      { dose: "30 mg", price: 84.99, inStock: 90, lot: "TIR30-001", coaDate: "2026-08-07", purity: 99.95, lab: "ILS Laboratories", coaPdf: "tir30-001.pdf", assay: { coaNumber: "COA-2026-VYPWEW", accessCode: "KBR434AT", netContentMg: 30.97 } },
+      { dose: "60 mg", price: 122.99, inStock: 90, lot: "TIR60-001", coaDate: "2026-08-07", purity: 99.94, lab: "ILS Laboratories", coaPdf: "tir60-001.pdf", assay: { coaNumber: "COA-2026-QZC_RP", accessCode: "MC63K5R7", netContentMg: 63.49 } },
+      { dose: "100 mg", price: 179.99, inStock: 90, lot: "TBD", coaDate: "TBD" },
     ],
     accent: { from: "oklch(0.62 0.18 200)", to: "oklch(0.8 0.14 230)" },
   },
@@ -250,13 +283,13 @@ export const compounds: Compound[] = [
   {
     accession: "PP-014",
     name: "GLOW 70",
-    codename: "Aesthetic Blend",
+    codename: "Multi-Peptide Blend",
     sequence: "TBD",
     molecularWeight: 0,
     purity: 99,
-    category: "senescence",
-    family: "Aesthetic blend",
-    blurb: "Multi-peptide aesthetic / skin blend. 70 mg total.",
+    category: "complex",
+    family: "Peptide blend",
+    blurb: "Multi-peptide blend. 70 mg total.",
     variants: [
       { dose: "70 mg", price: 69.99, inStock: 60, lot: "TBD", coaDate: "TBD" },
     ],
@@ -266,13 +299,13 @@ export const compounds: Compound[] = [
   {
     accession: "PP-015",
     name: "Ipamorelin",
-    codename: "Selective GHRP",
+    codename: "Selective Pentapeptide",
     sequence: "TBD",
     molecularWeight: 0,
     purity: 99,
-    category: "metabolic",
-    family: "GHRP",
-    blurb: "Selective growth-hormone releasing peptide. Pentapeptide.",
+    category: "receptor",
+    family: "Pentapeptide",
+    blurb: "Selective synthetic pentapeptide. Lyophilised.",
     variants: [
       { dose: "10 mg", price: 39.99, inStock: 150, lot: "TBD", coaDate: "TBD" },
     ],
@@ -282,13 +315,13 @@ export const compounds: Compound[] = [
   {
     accession: "PP-016",
     name: "KPV",
-    codename: "Anti-Inflammatory Tripeptide",
+    codename: "α-MSH C-Terminal Tripeptide",
     sequence: "KPV",
     molecularWeight: 0,
     purity: 99,
     category: "structural",
     family: "α-MSH fragment",
-    blurb: "C-terminal tripeptide of α-MSH. Anti-inflammatory.",
+    blurb: "C-terminal tripeptide of α-MSH. Lyophilised.",
     variants: [
       { dose: "10 mg", price: 24.99, inStock: 200, lot: "TBD", coaDate: "TBD" },
     ],
@@ -302,7 +335,7 @@ export const compounds: Compound[] = [
     sequence: "TBD",
     molecularWeight: 0,
     purity: 99,
-    category: "metabolic",
+    category: "receptor",
     family: "Dual agonist",
     blurb: "GLP-1 / glucagon dual receptor agonist. Lyophilised.",
     variants: [
@@ -318,7 +351,7 @@ export const compounds: Compound[] = [
     sequence: "Small molecule",
     molecularWeight: 0,
     purity: 99,
-    category: "metabolic",
+    category: "receptor",
     family: "Small molecule",
     blurb: "5-amino-1-methylquinolinium iodide. NNMT inhibitor.",
     variants: [
@@ -334,8 +367,8 @@ export const compounds: Compound[] = [
     sequence: "γ-ECG",
     molecularWeight: 0,
     purity: 99,
-    category: "senescence",
-    family: "Tripeptide antioxidant",
+    category: "complex",
+    family: "Thiol tripeptide",
     blurb: "Reduced glutathione (GSH). 1.5 g per vial.",
     variants: [
       { dose: "1500 mg", price: 39.99, inStock: 100, lot: "TBD", coaDate: "TBD" },
@@ -350,7 +383,7 @@ export const compounds: Compound[] = [
     sequence: "TBD",
     molecularWeight: 0,
     purity: 99,
-    category: "nootropic",
+    category: "shortchain",
     family: "Melanocortin agonist",
     blurb: "Melanocortin receptor agonist. Cyclic heptapeptide.",
     variants: [
@@ -382,9 +415,9 @@ export const compounds: Compound[] = [
     sequence: "TBD",
     molecularWeight: 0,
     purity: 99,
-    category: "senescence",
+    category: "complex",
     family: "Melanocortin agonist",
-    blurb: "Cyclic α-MSH analogue. Pigmentation peptide.",
+    blurb: "Cyclic α-MSH analogue. Lyophilised.",
     variants: [
       { dose: "10 mg", price: 39.99, inStock: 140, lot: "TBD", coaDate: "TBD" },
     ],
@@ -392,19 +425,71 @@ export const compounds: Compound[] = [
   },
 ];
 
-export const categories = [
-  { key: "structural", label: "Structural" },
-  { key: "metabolic", label: "Metabolic" },
-  { key: "nootropic", label: "Nootropic" },
-  { key: "senescence", label: "Senescence" },
-] as const;
+/**
+ * Storefront filters.
+ *
+ * These replace the old Structural / Metabolic / Nootropic / Senescence
+ * tabs, which classified compounds by an effect in a body — exactly the
+ * framing a research-use catalogue has to avoid. Every filter here is
+ * derived from facts about the product itself (certification, whether
+ * it is a blend, whether it is a reagent), so none can drift out of step
+ * with the catalogue.
+ *
+ * The internal `category` field still exists; it only selects the
+ * monograph copy template on the product page and is never shown.
+ */
+export type CatalogFilter = {
+  key: string;
+  label: string;
+  match: (c: Compound) => boolean;
+};
+
+function isBlend(c: Compound): boolean {
+  return /blend/i.test(c.family);
+}
+
+function isSupply(c: Compound): boolean {
+  return /diluent/i.test(c.family);
+}
+
+export function catalogFilters(): CatalogFilter[] {
+  const filters: CatalogFilter[] = [
+    { key: "certified", label: "Certified · CoA", match: isCertified },
+    { key: "blends", label: "Blends", match: isBlend },
+    {
+      key: "peptides",
+      label: "Single compounds",
+      match: (c) => !isBlend(c) && !isSupply(c),
+    },
+    { key: "supplies", label: "Supplies", match: isSupply },
+  ];
+
+  // Only offered once the business has actually marked some.
+  if (compounds.some((c) => c.bestSeller)) {
+    filters.unshift({
+      key: "best-sellers",
+      label: "Best sellers",
+      match: (c) => Boolean(c.bestSeller),
+    });
+  }
+  return filters;
+}
 
 export function slugify(name: string): string {
   return name.toLowerCase().replaceAll(/\s+/g, "-");
 }
 
+/**
+ * The canonical slug for a compound: its pinned `slug` when it has one,
+ * otherwise the slugified name. Always use this rather than calling
+ * slugify on the name directly, or a renamed product loses its URL.
+ */
+export function compoundSlug(c: Compound): string {
+  return c.slug ?? slugify(c.name);
+}
+
 export function compoundBySlug(slug: string): Compound | undefined {
-  return compounds.find((c) => slugify(c.name) === slug);
+  return compounds.find((c) => compoundSlug(c) === slug);
 }
 
 /** First variant — used as the default surfaced on the catalog card. */
@@ -436,15 +521,57 @@ const COMPOUND_PHOTO: Record<string, string> = {
   semax: "Semax-10mg.png",
   selank: "Selank-10mg.png",
   tesamorelin: "Tesamorelin-5mg.png",
-  epitalon: "Epitalon-10mg.png",
   "mots-c": "MOTSc.png",
+  wolverine: "wolverine.png",
+  "cjc-1295-ipamorelin": "cjc-1295-ipamorelin.png",
+  retatrutide: "retatrutide.png",
+  tirzepatide: "tirzepatide.png",
+  "glow-70": "glow-70.png",
+  ipamorelin: "ipamorelin.png",
+  kpv: "kpv.png",
+  mazdutide: "mazdutide.png",
+  "5-amino-1mq": "5-amino-1mq.png",
+  glutathione: "glutathione.png",
+  "pt-141": "pt-141.png",
+  "melanotan-2": "melanotan-2.png",
+  "bac-water": "bac-water.png",
+  "igf-1-lr3": "igf-1-lr3.png",
 };
 
+/** A lot is certified when a signed CoA PDF is on file for it. */
+export function isCertifiedVariant(v: Variant): boolean {
+  return Boolean(v.coaPdf);
+}
+
+/** Whether any lot of this compound has a certificate. */
+export function isCertified(c: Compound): boolean {
+  return c.variants.some(isCertifiedVariant);
+}
+
+/** The first certified variant, for surfacing a compound by its proof. */
+export function firstCertifiedVariant(c: Compound): Variant | undefined {
+  return c.variants.find(isCertifiedVariant);
+}
+
+export function coaPdfSrc(v: Variant): string | null {
+  return v.coaPdf ? `/coa/${v.coaPdf}` : null;
+}
+
+/**
+ * Page one of the certificate, rendered to JPEG alongside the PDF
+ * (same basename). Pixel size of every rendered page — letter at 1100px.
+ */
+export const COA_IMAGE_SIZE = { width: 1100, height: 1556 } as const;
+
+export function coaImageSrc(v: Variant): string | null {
+  return v.coaPdf ? `/coa/${v.coaPdf.replace(/\.pdf$/i, ".jpg")}` : null;
+}
+
 export function compoundHasPhoto(c: Compound): boolean {
-  return slugify(c.name) in COMPOUND_PHOTO;
+  return compoundSlug(c) in COMPOUND_PHOTO;
 }
 
 export function compoundPhotoSrc(c: Compound): string {
-  const file = COMPOUND_PHOTO[slugify(c.name)];
+  const file = COMPOUND_PHOTO[compoundSlug(c)];
   return file ? `/images/compounds/${file}` : "/images/vial-base.png";
 }

@@ -393,3 +393,37 @@
     animation: none !important;
   }
 }
+
+/* Homepage vial marquee. Separate from the ticker's `marquee` keyframes
+   so tuning one can never change the other. The track holds the list
+   twice, so sliding by -50% lands exactly where it started. */
+@keyframes pp-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.pp-marquee { overflow: hidden; }
+.pp-marquee-track {
+  animation: pp-marquee var(--marquee-duration, 70s) linear infinite;
+}
+.pp-marquee:hover .pp-marquee-track,
+.pp-marquee:focus-within .pp-marquee-track {
+  animation-play-state: paused;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pp-marquee { overflow-x: auto; }
+  .pp-marquee-track { animation: none; }
+}
+
+/*
+ * iOS Safari zooms the page into any focused text field whose font is
+ * under 16px, and doesn't zoom back out. Forms here use small mono type
+ * set inline, so on touch screens every field is lifted to 16px. Pinch
+ * zoom stays enabled — this only stops the automatic jump.
+ */
+@media (pointer: coarse) {
+  input:not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}

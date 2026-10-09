@@ -1,14 +1,32 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
+import { redirect } from "next/navigation";
 import { LoginForm } from "@/components/shared/login-form";
+import { getCurrentUser } from "@/lib/auth/user";
+import { safeRedirectTarget } from "@/lib/auth/redirect-target";
 
 export const metadata: Metadata = {
-  title: "Sign in — PurePep Labs",
-  description: "Research-only access to the PurePep Labs catalog.",
+  title: "Sign in — The Pure Pep",
+  description: "Research-only access to the The Pure Pep catalog.",
 };
 
-export default function LoginPage() {
+/**
+ * Send already-signed-in visitors straight through.
+ *
+ * Without this, anyone who lands here with a live session — a stale tab, a
+ * bookmarked /login, or a gated buy button clicked in the moment before
+ * the client session resolves — is shown the form again and told to sign
+ * in a second time, having never been signed out.
+ */
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ redirect?: string | string[] }>;
+}) {
+  const [user, resolved] = await Promise.all([getCurrentUser(), searchParams]);
+  if (user) redirect(safeRedirectTarget(resolved.redirect));
+
   return (
     <div className="flex flex-col">
       <div className="section-eyebrow">

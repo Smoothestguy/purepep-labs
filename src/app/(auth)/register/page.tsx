@@ -1,14 +1,25 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { RegisterForm } from "@/components/shared/register-form";
+import { getCurrentUser } from "@/lib/auth/user";
+import { safeRedirectTarget } from "@/lib/auth/redirect-target";
 
 export const metadata: Metadata = {
-  title: "Create account — PurePep Labs",
+  title: "Create account — The Pure Pep",
   description:
-    "Open a research-use account for access to the PurePep Labs catalog.",
+    "Open a research-use account for access to the The Pure Pep catalog.",
 };
 
-export default function RegisterPage() {
+/** Same already-signed-in guard as /login — see that file for why. */
+export default async function RegisterPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ redirect?: string | string[] }>;
+}) {
+  const [user, resolved] = await Promise.all([getCurrentUser(), searchParams]);
+  if (user) redirect(safeRedirectTarget(resolved.redirect));
+
   return (
     <div className="flex flex-col">
       <div className="section-eyebrow">

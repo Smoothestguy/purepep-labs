@@ -18,11 +18,11 @@ export default function AuthLayout({
           <Link
             href="/"
             className="group flex items-center transition-opacity hover:opacity-80"
-            aria-label="PurePep Labs — home"
+            aria-label="The Pure Pep — home"
           >
             <Image
               src="/images/PurePep_Label.png"
-              alt="PurePep Labs"
+              alt="The Pure Pep"
               width={1320}
               height={1348}
               priority

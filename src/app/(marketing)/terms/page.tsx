@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Terms of sale — PurePep Labs",
+  title: "Terms of sale — The Pure Pep",
   description:
-    "Terms governing the sale of research compounds by PurePep Labs, LLC. Template — review with counsel before launch.",
+    "Terms governing the sale of research compounds by The Pure Pep, LLC. Template — review with counsel before launch.",
   alternates: { canonical: "/terms" },
 };
 
@@ -58,7 +58,7 @@ export default function TermsPage() {
                 eyebrow="01 · Eligibility"
                 title="Who may purchase."
                 paragraphs={[
-                  "PurePep Labs sells laboratory compounds only to individuals aged twenty-one years or older who identify themselves as qualified researchers, clinicians, or academic-affiliated personnel. By placing an order, you represent that you meet these requirements and that your intended use is confined to in-vitro, pre-clinical, or instrumentation-calibration contexts.",
+                  "The Pure Pep sells laboratory compounds only to individuals aged twenty-one years or older who identify themselves as qualified researchers, clinicians, or academic-affiliated personnel. By placing an order, you represent that you meet these requirements and that your intended use is confined to in-vitro, pre-clinical, or instrumentation-calibration contexts.",
                   "We reserve the right to decline or cancel any order at our sole discretion, including after payment has been authorised, where eligibility cannot be substantiated.",
                 ]}
               />

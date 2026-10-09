@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import type { Compound, Variant } from "@/lib/compounds";
-import { slugify } from "@/lib/compounds";
+import { compoundSlug } from "@/lib/compounds";
 
 /**
  * Cart shape — composite-keyed by `${slug}::${dose}` so different variants
@@ -39,7 +39,7 @@ export const useCartStore = create<CartState>()(
     (set, get) => ({
       items: [],
       addItem: (compound, variant) => {
-        const slug = slugify(compound.name);
+        const slug = compoundSlug(compound);
         const key = cartItemKey(slug, variant.dose);
         const existing = get().items.find((i) => i.key === key);
         if (existing) {

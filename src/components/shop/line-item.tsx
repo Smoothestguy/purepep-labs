@@ -1,6 +1,7 @@
 "use client";
 
 import { useCart, type CartItem } from "@/lib/cart/store";
+import { compoundBySlug, compoundPhotoSrc } from "@/lib/compounds";
 
 type Props = {
   item: CartItem;
@@ -10,13 +11,27 @@ export function LineItem({ item }: Props) {
   const { updateQuantity, removeItem } = useCart();
   const lineSubtotal = item.price * item.quantity;
 
+  // Resolved from the catalog rather than stored on the cart item, so a
+  // replaced product photo shows up without customers having to empty a
+  // cart they saved weeks ago.
+  const compound = compoundBySlug(item.slug);
+  const photo = compound ? compoundPhotoSrc(compound) : "/images/vial-base.png";
+
   return (
     <div
       className="grid grid-cols-[1fr_auto] items-start gap-x-4 gap-y-3 border-b border-hairline py-5 sm:grid-cols-[1fr_auto_auto_auto] sm:items-center sm:gap-x-6"
       style={{ paddingBlock: "clamp(1.1rem, 1.8vw, 1.5rem)" }}
     >
       {/* Identity */}
-      <div className="min-w-0">
+      <div className="flex min-w-0 items-start gap-3">
+        <img
+          src={photo}
+          alt=""
+          aria-hidden
+          loading="lazy"
+          className="size-16 shrink-0 border border-hairline bg-[oklch(0.05_0.005_250)] object-contain sm:size-20"
+        />
+        <div className="min-w-0">
         <div
           className="font-mono tracking-[0.22em] uppercase text-muted-foreground"
           style={{ fontSize: "clamp(9.5px, 0.25vw + 8.5px, 10.5px)" }}
@@ -34,6 +49,7 @@ export function LineItem({ item }: Props) {
           style={{ fontSize: "clamp(10.5px, 0.25vw + 9.5px, 11.5px)" }}
         >
           {item.dose} · ${item.price} / vial
+        </div>
         </div>
       </div>
 
