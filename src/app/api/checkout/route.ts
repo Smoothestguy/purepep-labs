@@ -363,6 +363,7 @@ export async function POST(request: NextRequest): Promise<Response> {
     const link = await createPaymentLink({
       order,
       orderRef,
+      shipping: body.shipping,
       email: body.email,
       origin: origin as string,
     });

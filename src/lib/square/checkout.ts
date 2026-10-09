@@ -1,5 +1,6 @@
 import "server-only";
 
+import type { CheckoutShipping } from "@/lib/checkout/types";
 import type { PricedOrder } from "@/lib/pricing";
 import {
   isSquareConfigured,
@@ -78,6 +79,7 @@ export async function createPaymentLink(input: {
   orderRef: string;
   email: string;
   origin: string;
+  shipping: CheckoutShipping;
 }): Promise<SquareLinkResult> {
   if (!isSquareConfigured()) {
     return { ok: false, error: "Square is not configured." };
@@ -88,7 +90,7 @@ export async function createPaymentLink(input: {
     return { ok: false, error: "Could not resolve a Square location." };
   }
 
-  const { order, orderRef, email, origin } = input;
+  const { order, orderRef, email, origin, shipping } = input;
 
   // Charged prices, not list prices — any discount is already baked in
   // by lib/pricing, and the line items must sum to the total we recorded.
@@ -129,7 +131,7 @@ export async function createPaymentLink(input: {
       redirect_url: `${origin}/checkout/success?order=${encodeURIComponent(orderRef)}&pending=1`,
     },
     pre_populated_data: { buyer_email: email },
-    payment_note: `The Pure Pep order ${orderRef}`,
+    payment_note: paymentNote(orderRef, shipping),
   };
 
   try {
@@ -171,4 +173,23 @@ export async function createPaymentLink(input: {
     );
     return { ok: false, error: "Could not start the payment session." };
   }
+}
+
+/**
+ * The note Square shows on the payment in its dashboard: our order ref
+ * plus who and where to ship to, so an order can be packed straight from
+ * Square without opening our admin page. Square caps the note at 500
+ * characters; an address never comes close, but it is clipped regardless
+ * so an unusually long one can't fail the payment link.
+ */
+function paymentNote(orderRef: string, s: CheckoutShipping): string {
+  const name = `${s.firstName} ${s.lastName}`.trim();
+  const street = [s.address1, s.address2].filter(Boolean).join(", ");
+  const place = `${s.city}, ${s.state} ${s.zip}`.trim();
+  const parts = [
+    `The Pure Pep order ${orderRef}`,
+    `Ship to: ${[name, street, place].filter(Boolean).join(", ")}`,
+    s.phone ? `Phone: ${s.phone}` : "",
+  ].filter(Boolean);
+  return parts.join(" · ").slice(0, 500);
 }

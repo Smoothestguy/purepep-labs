@@ -265,9 +265,11 @@ function lede(state: ReceiptState, order: ReceiptOrder | null, comped: boolean) 
   switch (state) {
     case "paid":
       if (comped) return "Your order is confirmed at no charge. We'll get it packed and on its way.";
+      // The Square/Stripe webhook emails a confirmation when it marks the
+      // order paid, so by the time this state shows, it has been sent.
       return total
-        ? `We've received your payment of ${total} and your order is confirmed. We'll get it packed and on its way.`
-        : "We've received your payment and your order is confirmed.";
+        ? `We've received your payment of ${total} and your order is confirmed. A confirmation is on its way to ${order?.email ?? "your inbox"}.`
+        : "We've received your payment and your order is confirmed. A confirmation is on its way to your inbox.";
     case "confirming":
       return "Square is confirming your payment — this usually takes a few seconds and this page updates on its own. There's no need to pay again.";
     case "awaiting":
